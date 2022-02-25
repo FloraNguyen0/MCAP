@@ -1,8 +1,11 @@
 {
   "name": "meetcap",
   "version": "1.0.0",
-  "description": "",
+  "description": "This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, a sample script that deploys that contract, and an example of a task implementation, which simply lists the available accounts.",
   "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -10,10 +13,17 @@
     "type": "git",
     "url": "git@git.apist.io:Flora/Meetcap_Official.git"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": [
+    "meetcap"
+  ],
+  "author": "Flora Nguyen",
+  "license": "MIT",
   "devDependencies": {
+    "@nomiclabs/hardhat-ethers": "^2.0.5",
+    "@nomiclabs/hardhat-waffle": "^2.0.2",
+    "chai": "^4.3.6",
+    "ethereum-waffle": "^3.4.0",
+    "ethers": "^5.5.4",
     "hardhat": "^2.8.4"
   }
 }

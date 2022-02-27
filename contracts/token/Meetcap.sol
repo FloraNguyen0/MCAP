@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity ^0.8.7;
+pragma solidity ^0.8.9;
 
-import "./IBEP20.sol";
-
+import "../library & interface/IBEP20.sol";
 
 abstract contract Context {
     function _msgSender() internal view virtual returns (address) {
@@ -15,9 +14,7 @@ abstract contract Context {
     }
 }
 
-
 contract BEP20Token is IBEP20, Context {
-
     mapping(address => uint256) private _balances;
     mapping(address => mapping(address => uint256)) private _allowances;
 
@@ -46,21 +43,43 @@ contract BEP20Token is IBEP20, Context {
         return _totalSupply;
     }
 
-    function balanceOf(address account) public view virtual override returns (uint256) {
+    function balanceOf(address account)
+        public
+        view
+        virtual
+        override
+        returns (uint256)
+    {
         return _balances[account];
     }
 
-    function transfer(address to, uint256 amount) public virtual override returns (bool) {
+    function transfer(address to, uint256 amount)
+        public
+        virtual
+        override
+        returns (bool)
+    {
         address owner = _msgSender();
         _transfer(owner, to, amount);
         return true;
     }
 
-    function allowance(address owner, address spender) public view virtual override returns (uint256) {
+    function allowance(address owner, address spender)
+        public
+        view
+        virtual
+        override
+        returns (uint256)
+    {
         return _allowances[owner][spender];
     }
 
-    function approve(address spender, uint256 amount) public virtual override returns (bool) {
+    function approve(address spender, uint256 amount)
+        public
+        virtual
+        override
+        returns (bool)
+    {
         address owner = _msgSender();
         _approve(owner, spender, amount);
         return true;
@@ -77,16 +96,27 @@ contract BEP20Token is IBEP20, Context {
         return true;
     }
 
-    function increaseAllowance(address spender, uint256 addedValue) public virtual returns (bool) {
+    function increaseAllowance(address spender, uint256 addedValue)
+        public
+        virtual
+        returns (bool)
+    {
         address owner = _msgSender();
         _approve(owner, spender, _allowances[owner][spender] + addedValue);
         return true;
     }
 
-    function decreaseAllowance(address spender, uint256 subtractedValue) public virtual returns (bool) {
+    function decreaseAllowance(address spender, uint256 subtractedValue)
+        public
+        virtual
+        returns (bool)
+    {
         address owner = _msgSender();
         uint256 currentAllowance = _allowances[owner][spender];
-        require(currentAllowance >= subtractedValue, "BEP20: decreased allowance below zero");
+        require(
+            currentAllowance >= subtractedValue,
+            "BEP20: decreased allowance below zero"
+        );
         unchecked {
             _approve(owner, spender, currentAllowance - subtractedValue);
         }
@@ -105,7 +135,10 @@ contract BEP20Token is IBEP20, Context {
         _beforeTokenTransfer(from, to, amount);
 
         uint256 fromBalance = _balances[from];
-        require(fromBalance >= amount, "BEP20: transfer amount exceeds balance");
+        require(
+            fromBalance >= amount,
+            "BEP20: transfer amount exceeds balance"
+        );
         unchecked {
             _balances[from] = fromBalance - amount;
         }
@@ -164,7 +197,10 @@ contract BEP20Token is IBEP20, Context {
     ) internal virtual {
         uint256 currentAllowance = allowance(owner, spender);
         if (currentAllowance != type(uint256).max) {
-            require(currentAllowance >= amount, "BEP20: insufficient allowance");
+            require(
+                currentAllowance >= amount,
+                "BEP20: insufficient allowance"
+            );
             unchecked {
                 _approve(owner, spender, currentAllowance - amount);
             }
@@ -184,9 +220,7 @@ contract BEP20Token is IBEP20, Context {
     ) internal virtual {}
 }
 
-
 abstract contract BEP20Burnable is Context, BEP20Token {
- 
     function burn(uint256 amount) public virtual {
         _burn(_msgSender(), amount);
     }
@@ -197,61 +231,56 @@ abstract contract BEP20Burnable is Context, BEP20Token {
     }
 }
 
-// File: MeetcapToken.sol
-
-contract MeetcapToken is BEP20Token, BEP20Burnable {
+contract Meetcap is BEP20Token, BEP20Burnable {
     constructor() BEP20Token("Meetcap", "MC") {
-        _mint(msg.sender, 10000000000 * 10 ** decimals());
+        _mint(msg.sender, 10000000000 * 10**decimals());
     }
 }
 
+//  struct lock_box{
 
-  //  struct lock_box{
-            
-        //     uint256 value_;
-        //     uint256 releaseTime;
-        // }
-        // https://github.com/OpenZeppelin/openzeppelin-contracts/blob/v4.0.0/contracts/token/ERC20/IERC20.sol
-        // lock_box[] public lockbox_arr;
+//     uint256 value_;
+//     uint256 releaseTime;
+// }
+// https://github.com/OpenZeppelin/openzeppelin-contracts/blob/v4.0.0/contracts/token/ERC20/IERC20.sol
+// lock_box[] public lockbox_arr;
 
-        // modifier onlyOwner {
-        //   require(msg.sender == owner) ;
-        //   _;
-        // }
-        
-        // function lock_erc(uint256 value_, uint256 releaseTime) onlyOwner external returns (uint256) {
-            
-        //     if(lockbox_arr.length == 0){
-        //         lockbox_arr.length++;
-        //     }        
+// modifier onlyOwner {
+//   require(msg.sender == owner) ;
+//   _;
+// }
 
-        //     balanceof_[msg.sender] = balanceof_[msg.sender].sub(value_);
-            
-        //     lockbox_arr.length++;
+// function lock_erc(uint256 value_, uint256 releaseTime) onlyOwner external returns (uint256) {
 
-        //     lockbox_arr[lockbox_arr.length-1].value_ = value_;
-        //     lockbox_arr[lockbox_arr.length-1].releaseTime = releaseTime;
-            
-        //     return lockbox_arr.length-1;
-          
-        // }
-        
-        // function release_erc(uint256 lockbox_no) onlyOwner public returns(bool){
-            
-        //     bool status = false;
-            
-        //     lock_box storage lb = lockbox_arr[lockbox_no];
-            
-            
-        //     uint256 value_ = lb.value_;
-        //     uint256 releaseTime = lb.releaseTime;
-            
-        //     if(releaseTime < now){
-        //         balanceof_[owner] = balanceof_[owner].add(value_);
-        //         status = true;
-        //         lb.value_ = 0;
-        //     }
-            
-        //     return status;
-        // }
+//     if(lockbox_arr.length == 0){
+//         lockbox_arr.length++;
+//     }
 
+//     balanceof_[msg.sender] = balanceof_[msg.sender].sub(value_);
+
+//     lockbox_arr.length++;
+
+//     lockbox_arr[lockbox_arr.length-1].value_ = value_;
+//     lockbox_arr[lockbox_arr.length-1].releaseTime = releaseTime;
+
+//     return lockbox_arr.length-1;
+
+// }
+
+// function release_erc(uint256 lockbox_no) onlyOwner public returns(bool){
+
+//     bool status = false;
+
+//     lock_box storage lb = lockbox_arr[lockbox_no];
+
+//     uint256 value_ = lb.value_;
+//     uint256 releaseTime = lb.releaseTime;
+
+//     if(releaseTime < now){
+//         balanceof_[owner] = balanceof_[owner].add(value_);
+//         status = true;
+//         lb.value_ = 0;
+//     }
+
+//     return status;
+// }

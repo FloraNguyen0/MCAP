@@ -1,11 +1,10 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity 0.8.7;
+pragma solidity ^0.8.9;
 
-import "./IBEP20.sol";
-import "./SafeBEP20.sol";
-import "./SafeMathX.sol";
-
+import "../library & interface/IBEP20.sol";
+import "../library & interface/SafeBEP20.sol";
+import "../library & interface/SafeMathX.sol";
 
 contract TokenTimeLock {
     using SafeBEP20 for IBEP20;
@@ -66,7 +65,7 @@ contract TokenTimeLock {
         uint32[] memory lockDurations_,
         uint32[] memory releasePercents_,
         uint64 startDate_
-    ){
+    ) {
         require(
             lockDurations_.length == releasePercents_.length,
             "TokenTimeLock: unlock length not match"

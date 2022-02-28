@@ -5,17 +5,17 @@ import { ethers, deployments } from 'hardhat';
 
 const { BigNumber } = ethers;
 
-describe('CoinBHO', () => {
+describe('Meetcap', () => {
   let coinContract: Contract;
   let owner: SignerWithAddress;
   let addr1: SignerWithAddress;
   let addr2: SignerWithAddress;
 
   beforeEach(async () => {
-    await deployments.fixture(['coin-bho-v2']);
+    await deployments.fixture(['meetcap-v1']);
     [owner, addr1, addr2] = await ethers.getSigners();
     [owner, addr1] = await ethers.getSigners();
-    coinContract = await ethers.getContract('CoinBHO');
+    coinContract = await ethers.getContract('Meetcap');
     await coinContract.deployed();
   });
 
@@ -152,13 +152,13 @@ describe('CoinBHO', () => {
       ).to.revertedWith('Ownable: caller is not the owner');
     });
 
-    it('CoinBHOV2 should revert when call initialize_v2 more than once', async function () {
+    it('meetcap-v1 should revert when call initialize_v2 more than once', async function () {
       await expect(coinContract.initialize_v2()).to.revertedWith(
-        'CoinBHOV2: already initialized'
+        'meetcap-v1: already initialized'
       );
     });
 
-    it('CoinBHOV2: only minter can mint', async function () {
+    it('meetcap-v1: only minter can mint', async function () {
       const mintAmount = 1_000_000_000;
       await coinContract.grantRole(coinContract.MINTER_ROLE(), owner.address);
       await expect(
@@ -174,7 +174,7 @@ describe('CoinBHO', () => {
       ).to.reverted;
     });
 
-    it('CoinBHOV2: should increase total supply when mint', async function () {
+    it('meetcap-v1: should increase total supply when mint', async function () {
       const mintAmount = 1_000_000_000;
       const initialOwnerBalance = await coinContract.balanceOf(owner.address);
       await coinContract.grantRole(coinContract.MINTER_ROLE(), owner.address);

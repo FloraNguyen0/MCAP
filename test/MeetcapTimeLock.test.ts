@@ -12,9 +12,9 @@ describe('TokenTimeLock', function () {
   let factoryAddr: SignerWithAddress;
 
   beforeEach(async function () {
-    await deployments.fixture(['token-time-lock', 'coin-bho']);
+    await deployments.fixture(['token-time-lock', 'meetcap']);
     [owner, addr1, factoryAddr] = await ethers.getSigners();
-    coinContract = await ethers.getContract('CoinBHO');
+    coinContract = await ethers.getContract('Meetcap');
     lockContract = await ethers.getContract('TokenTimeLock');
     await coinContract.deployed();
     await lockContract.deployed();

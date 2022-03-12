@@ -1,5 +1,9 @@
-require("@nomiclabs/hardhat-waffle");
-require("@nomiclabs/hardhat-solhint");
+import { task } from 'hardhat/config';
+import '@nomiclabs/hardhat-waffle';
+import '@nomiclabs/hardhat-solhint';
+// require("@nomiclabs/hardhat-waffle");
+// require("@nomiclabs/hardhat-solhint");
+
 
 // This is a sample Hardhat task. To learn how to create your own go to
 // https://hardhat.org/guides/create-task.html
@@ -27,7 +31,7 @@ module.exports = {
     hardhat: {
     },
   },
-   solidity: {
+  solidity: {
     version: "0.8.9",
     settings: {
       evmVersion: "constantinople",
@@ -37,7 +41,7 @@ module.exports = {
       },
     },
   },
-   paths: {
+  paths: {
     sources: "./contracts",
     tests: "./test",
     cache: "./cache",

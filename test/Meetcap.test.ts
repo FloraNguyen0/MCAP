@@ -1,8 +1,7 @@
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
-import { Contract } from 'ethers';
-const { ethers } = require("hardhat");
-const { expect } = require("chai");
-const { BigNumber } = ethers;
+import { ethers } from 'hardhat';
+import { BigNumber, Contract } from 'ethers';
+import { expect } from 'chai';
 
 
 describe('Meetcap', () => {
@@ -10,6 +9,9 @@ describe('Meetcap', () => {
   let owner: SignerWithAddress;
   let addr1: SignerWithAddress;
   let addr2: SignerWithAddress;
+  const name = "Meetcap";
+  const symbol = 'MC';
+  const initialSupply = BigNumber.from(10_000_000_000).mul(BigNumber.from(10).pow(18));
 
   beforeEach(async () => {
     [owner, addr1, addr2] = await ethers.getSigners();
@@ -23,14 +25,20 @@ describe('Meetcap', () => {
   });
 
   describe('Deployment', function () {
+    it('Should has a name', async function () {
+      expect(await meetcap.name()).to.equal(name);
+    });
+
+    it('Should has a symbol', async function () {
+      expect(await meetcap.symbol()).to.equal(symbol);
+    });
+
     it('Should have 18 decimals', async () => {
       expect(await meetcap.decimals()).to.equal(18);
     });
 
     it('Should have 10B total supply', async () => {
-      expect(await meetcap.totalSupply()).to.equal(
-        BigNumber.from(10_000_000_000).mul(BigNumber.from(10).pow(18))
-      );
+      expect(await meetcap.totalSupply()).to.equal(initialSupply);
     });
 
     it('Should set the right owner', async function () {

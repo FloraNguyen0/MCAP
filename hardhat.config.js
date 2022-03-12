@@ -1,5 +1,4 @@
 require("@nomiclabs/hardhat-waffle");
-require('@nomiclabs/hardhat-ethers');
 require("@nomiclabs/hardhat-solhint");
 
 // This is a sample Hardhat task. To learn how to create your own go to
@@ -11,6 +10,7 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
     console.log(account.address);
   }
 });
+
 
 // You need to export an object to set up your config
 // Go to https://hardhat.org/config/ to learn more
@@ -27,7 +27,16 @@ module.exports = {
     hardhat: {
     },
   },
-  solidity: "0.8.9",
+   solidity: {
+    version: "0.8.9",
+    settings: {
+      evmVersion: "constantinople",
+      optimizer: {
+        enabled: true,
+        runs: 200,
+      },
+    },
+  },
    paths: {
     sources: "./contracts",
     tests: "./test",

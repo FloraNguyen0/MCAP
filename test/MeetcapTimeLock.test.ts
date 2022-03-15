@@ -1,31 +1,37 @@
-import { expect } from 'chai';
-import { ethers, waffle, deployments } from 'hardhat';
-import { Contract, BigNumber } from 'ethers';
-import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/dist/src/signers';
-import { EthUtils, daysToSeconds } from '../../utils';
+import { ethers, waffle } from 'hardhat';
+import chai from 'chai';
+import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
+
+import { EthUtils, daysToSeconds } from '../utils/EthUtils';
+import { Meetcap } from '../typechain-types/Meetcap';
+import { MeetcapTimeLock } from '../typechain-types/MeetcapTimeLock'
+import MeetcapArtifact from '../artifacts/contracts/token/Meetcap.sol/Meetcap.json';
+import MeetcapTimeLockArtifact from '../artifacts/contracts/token/MeetcapTimeLock.sol/MeetcapTimeLock.json';
+
+const { deployContract } = waffle;
+const { BigNumber } = ethers;
+const { expect } = chai;
 
 describe('TokenTimeLock', function () {
-  let coinContract: Contract;
-  let lockContract: Contract;
+  let meetcap: Meetcap;
+  let meetcapTimeLock: MeetcapTimeLock;
   let owner: SignerWithAddress;
   let addr1: SignerWithAddress;
   let factoryAddr: SignerWithAddress;
 
   beforeEach(async function () {
-    await deployments.fixture(['token-time-lock', 'meetcap']);
+    // await deployments.fixture(['token-time-lock', 'meetcap']);
     [owner, addr1, factoryAddr] = await ethers.getSigners();
-    coinContract = await ethers.getContract('Meetcap');
-    lockContract = await ethers.getContract('TokenTimeLock');
-    await coinContract.deployed();
-    await lockContract.deployed();
+    meetcap = (await deployContract(owner, MeetcapArtifact)) as Meetcap;
+    meetcapTimeLock = (await deployContract(owner, MeetcapTimeLockArtifact)) as MeetcapTimeLock;
   });
 
   describe('register new lock', function () {
     it('new lock should be stored successfully', async function () {
-      await lockContract.initialize(
+      await meetcapTimeLock.initialize(
         factoryAddr.address,
         addr1.address,
-        coinContract.address,
+        meetcap.address,
         10,
         [
           daysToSeconds(1),
@@ -48,7 +54,7 @@ describe('TokenTimeLock', function () {
         releaseDates,
         nextReleaseIdx,
         factory,
-      ] = await lockContract.lockData();
+      ] = await meetcapTimeLock.lockData();
 
       expect(amount).to.equal(10);
       expect(lockDurations).to.deep.equal([
@@ -66,10 +72,10 @@ describe('TokenTimeLock', function () {
 
     it('should revert when unlock percents and unlock dates length not match', async function () {
       await expect(
-        lockContract.initialize(
+        meetcapTimeLock.initialize(
           factoryAddr.address,
           addr1.address,
-          coinContract.address,
+          meetcap.address,
           10,
           [
             daysToSeconds(1),
@@ -86,10 +92,10 @@ describe('TokenTimeLock', function () {
 
     it('should revert when total unlock percents not 100', async function () {
       await expect(
-        lockContract.initialize(
+        meetcapTimeLock.initialize(
           factoryAddr.address,
           addr1.address,
-          coinContract.address,
+          meetcap.address,
           10,
           [
             daysToSeconds(1),
@@ -105,10 +111,10 @@ describe('TokenTimeLock', function () {
     });
 
     it('should revert when call initialize() more than once', async function () {
-      await lockContract.initialize(
+      await meetcapTimeLock.initialize(
         factoryAddr.address,
         addr1.address,
-        coinContract.address,
+        meetcap.address,
         10,
         [
           daysToSeconds(1),
@@ -122,10 +128,10 @@ describe('TokenTimeLock', function () {
       );
 
       await expect(
-        lockContract.initialize(
+        meetcapTimeLock.initialize(
           factoryAddr.address,
           addr1.address,
-          coinContract.address,
+          meetcap.address,
           10,
           [
             daysToSeconds(1),
@@ -141,10 +147,10 @@ describe('TokenTimeLock', function () {
     });
 
     it('should set factory correctly when initialize()', async function () {
-      await lockContract.initialize(
+      await meetcapTimeLock.initialize(
         factoryAddr.address,
         addr1.address,
-        coinContract.address,
+        meetcap.address,
         10,
         [
           daysToSeconds(1),
@@ -157,18 +163,18 @@ describe('TokenTimeLock', function () {
         await EthUtils.latestBlockTimestamp()
       );
 
-      expect(await lockContract.factory()).to.equal(factoryAddr.address);
+      expect(await meetcapTimeLock.factory()).to.equal(factoryAddr.address);
     });
   });
 
   describe('release locked tokens', function () {
     it('should release locked tokens to correct user when unlock conditions are met', async function () {
-      await lockContract.initialize(
+      await meetcapTimeLock.initialize(
         factoryAddr.address,
         addr1.address,
-        coinContract.address,
+        meetcap.address,
         BigNumber.from(100_000_000).mul(
-          BigNumber.from(10).pow(BigNumber.from(await coinContract.decimals()))
+          BigNumber.from(10).pow(BigNumber.from(await meetcap.decimals()))
         ),
         [
           daysToSeconds(1),
@@ -180,18 +186,18 @@ describe('TokenTimeLock', function () {
         [20, 20, 10, 25, 25],
         await EthUtils.latestBlockTimestamp()
       );
-      await coinContract.transfer(
-        lockContract.address,
+      await meetcap.transfer(
+        meetcapTimeLock.address,
         BigNumber.from(100_000_000).mul(
-          BigNumber.from(10).pow(BigNumber.from(await coinContract.decimals()))
+          BigNumber.from(10).pow(BigNumber.from(await meetcap.decimals()))
         )
       );
-      const decimals = await coinContract.decimals();
+      const decimals = await meetcap.decimals();
 
       // Release 1st phase
       ethers.provider.send('evm_increaseTime', [3600 * 24]);
-      await lockContract.release();
-      expect(await coinContract.balanceOf(addr1.address)).to.equal(
+      await meetcapTimeLock.release();
+      expect(await meetcap.balanceOf(addr1.address)).to.equal(
         BigNumber.from(20_000_000).mul(
           BigNumber.from(10).pow(BigNumber.from(decimals))
         )
@@ -199,8 +205,8 @@ describe('TokenTimeLock', function () {
 
       // Release 2nd 3rd phase
       ethers.provider.send('evm_increaseTime', [3600 * 24 * 2]);
-      await lockContract.release();
-      expect(await coinContract.balanceOf(addr1.address)).to.equal(
+      await meetcapTimeLock.release();
+      expect(await meetcap.balanceOf(addr1.address)).to.equal(
         BigNumber.from(50_000_000).mul(
           BigNumber.from(10).pow(BigNumber.from(decimals))
         )
@@ -208,8 +214,8 @@ describe('TokenTimeLock', function () {
 
       // Release remaining phase
       ethers.provider.send('evm_increaseTime', [3600 * 24 * 2]);
-      await lockContract.release();
-      expect(await coinContract.balanceOf(addr1.address)).to.equal(
+      await meetcapTimeLock.release();
+      expect(await meetcap.balanceOf(addr1.address)).to.equal(
         BigNumber.from(100_000_000).mul(
           BigNumber.from(10).pow(BigNumber.from(decimals))
         )
@@ -217,10 +223,10 @@ describe('TokenTimeLock', function () {
     });
 
     it('should emit Release event with correct data', async function () {
-      await lockContract.initialize(
+      await meetcapTimeLock.initialize(
         factoryAddr.address,
         addr1.address,
-        coinContract.address,
+        meetcap.address,
         100,
         [
           daysToSeconds(1),
@@ -233,7 +239,7 @@ describe('TokenTimeLock', function () {
         await EthUtils.latestBlockTimestamp()
       );
 
-      await coinContract.transfer(lockContract.address, 100);
+      await meetcap.transfer(meetcapTimeLock.address, 100);
 
       const releaseDates = [
         (await EthUtils.latestBlockTimestamp()) + daysToSeconds(1),
@@ -242,22 +248,22 @@ describe('TokenTimeLock', function () {
 
       // Move to 1st phase
       ethers.provider.send('evm_increaseTime', [3600 * 24]);
-      await expect(lockContract.connect(addr1).release())
-        .to.emit(lockContract, 'Released')
+      await expect(meetcapTimeLock.connect(addr1).release())
+        .to.emit(meetcapTimeLock, 'Released')
         .withArgs(20, 20, 0, 0, releaseDates[0]);
 
       // Move to last phase
       ethers.provider.send('evm_increaseTime', [3600 * 24 * 4]);
-      await expect(lockContract.connect(addr1).release())
-        .to.emit(lockContract, 'Released')
+      await expect(meetcapTimeLock.connect(addr1).release())
+        .to.emit(meetcapTimeLock, 'Released')
         .withArgs(80, 100, 1, 4, releaseDates[1]);
     });
 
     it('just to check what maximum gas that release all phases at a time', async function () {
-      await lockContract.initialize(
+      await meetcapTimeLock.initialize(
         factoryAddr.address,
         addr1.address,
-        coinContract.address,
+        meetcap.address,
         100,
         [
           daysToSeconds(1),
@@ -270,19 +276,19 @@ describe('TokenTimeLock', function () {
         await EthUtils.latestBlockTimestamp()
       );
 
-      await coinContract.transfer(lockContract.address, 100);
+      await meetcap.transfer(meetcapTimeLock.address, 100);
 
       ethers.provider.send('evm_increaseTime', [3600 * 24 * 10]);
-      await lockContract.release();
+      await meetcapTimeLock.release();
 
-      expect(await coinContract.balanceOf(addr1.address)).to.equal(100);
+      expect(await meetcap.balanceOf(addr1.address)).to.equal(100);
     });
 
     it('should set release dates correct', async function () {
-      await lockContract.initialize(
+      await meetcapTimeLock.initialize(
         factoryAddr.address,
         addr1.address,
-        coinContract.address,
+        meetcap.address,
         100,
         [
           daysToSeconds(1),
@@ -295,7 +301,7 @@ describe('TokenTimeLock', function () {
         await EthUtils.latestBlockTimestamp()
       );
 
-      await coinContract.transfer(lockContract.address, 100);
+      await meetcap.transfer(meetcapTimeLock.address, 100);
 
       const originDate = await EthUtils.latestBlockTimestamp();
       const expectedReleaseDates = [
@@ -308,16 +314,16 @@ describe('TokenTimeLock', function () {
 
       // Move to 1st phase
       ethers.provider.send('evm_increaseTime', [3600 * 24]);
-      await lockContract.connect(addr1).release();
+      await meetcapTimeLock.connect(addr1).release();
       const [_1, _2, _3, _4, _5, _6, _7, releaseDates] =
-        await lockContract.lockData();
+        await meetcapTimeLock.lockData();
       expect(releaseDates[0]).to.equal(expectedReleaseDates[0]);
 
       // Move to last phase
       ethers.provider.send('evm_increaseTime', [3600 * 24 * 4]);
-      await lockContract.connect(addr1).release();
+      await meetcapTimeLock.connect(addr1).release();
       const [__1, __2, __3, __4, __5, __6, __7, releaseDates_2] =
-        await lockContract.lockData();
+        await meetcapTimeLock.lockData();
       expect(releaseDates_2[0]).to.equal(expectedReleaseDates[0]);
       expect(releaseDates_2[1]).to.equal(expectedReleaseDates[1]);
       expect(releaseDates_2[2]).to.equal(expectedReleaseDates[2]);
@@ -326,10 +332,10 @@ describe('TokenTimeLock', function () {
     });
 
     it(`should revert when does not meet next unlock phase requirements`, async function () {
-      await lockContract.initialize(
+      await meetcapTimeLock.initialize(
         factoryAddr.address,
         addr1.address,
-        coinContract.address,
+        meetcap.address,
         10,
         [
           daysToSeconds(1),
@@ -342,36 +348,36 @@ describe('TokenTimeLock', function () {
         await EthUtils.latestBlockTimestamp()
       );
 
-      await coinContract.transfer(lockContract.address, 100);
+      await meetcap.transfer(meetcapTimeLock.address, 100);
 
-      await expect(lockContract.connect(addr1).release()).to.be.revertedWith(
+      await expect(meetcapTimeLock.connect(addr1).release()).to.be.revertedWith(
         'TokenTimeLock: next phase unavailable'
       );
 
       // Release 1st phase
       ethers.provider.send('evm_increaseTime', [3600 * 24]);
-      await lockContract.connect(addr1).release();
+      await meetcapTimeLock.connect(addr1).release();
 
       // Should revert if users try to release 2nd phase
-      await expect(lockContract.connect(addr1).release()).to.be.revertedWith(
+      await expect(meetcapTimeLock.connect(addr1).release()).to.be.revertedWith(
         'TokenTimeLock: next phase unavailable'
       );
 
       // Release 2nd, 3rd, 4th phase
       ethers.provider.send('evm_increaseTime', [3600 * 24 * 3]);
-      await lockContract.connect(addr1).release();
+      await meetcapTimeLock.connect(addr1).release();
 
       // Should revert if users try to release 5th phase
-      await expect(lockContract.connect(addr1).release()).to.be.revertedWith(
+      await expect(meetcapTimeLock.connect(addr1).release()).to.be.revertedWith(
         'TokenTimeLock: next phase unavailable'
       );
     });
 
     it('should revert when all lock phases are released', async function () {
-      await lockContract.initialize(
+      await meetcapTimeLock.initialize(
         factoryAddr.address,
         addr1.address,
-        coinContract.address,
+        meetcap.address,
         10,
         [
           daysToSeconds(1),
@@ -383,22 +389,22 @@ describe('TokenTimeLock', function () {
         [20, 20, 10, 25, 25],
         await EthUtils.latestBlockTimestamp()
       );
-      await coinContract.transfer(lockContract.address, 100);
+      await meetcap.transfer(meetcapTimeLock.address, 100);
 
       // Release all phases
       ethers.provider.send('evm_increaseTime', [3600 * 24 * 5]);
-      await lockContract.connect(addr1).release();
+      await meetcapTimeLock.connect(addr1).release();
 
-      await expect(lockContract.connect(addr1).release()).to.be.revertedWith(
+      await expect(meetcapTimeLock.connect(addr1).release()).to.be.revertedWith(
         'TokenTimeLock: all phases are released'
       );
     });
 
     it('should revert when contract has insufficient balance to withdraw', async function () {
-      await lockContract.initialize(
+      await meetcapTimeLock.initialize(
         factoryAddr.address,
         addr1.address,
-        coinContract.address,
+        meetcap.address,
         100,
         [
           daysToSeconds(1),
@@ -410,10 +416,10 @@ describe('TokenTimeLock', function () {
         [20, 20, 10, 25, 25],
         await EthUtils.latestBlockTimestamp()
       );
-      await coinContract.transfer(lockContract.address, 50);
+      await meetcap.transfer(meetcapTimeLock.address, 50);
       // Release all phases
       ethers.provider.send('evm_increaseTime', [3600 * 24 * 5]);
-      await expect(lockContract.connect(addr1).release()).to.be.revertedWith(
+      await expect(meetcapTimeLock.connect(addr1).release()).to.be.revertedWith(
         'TokenTimeLock: insufficient balance'
       );
     });

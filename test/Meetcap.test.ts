@@ -1,11 +1,17 @@
+import { ethers, waffle } from 'hardhat';
+import chai from 'chai';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
-import { ethers } from 'hardhat';
-import { BigNumber, Contract } from 'ethers';
-import { expect } from 'chai';
+
+import MeetcapArtifact from '../artifacts/contracts/token/Meetcap.sol/Meetcap.json';
+import { Meetcap } from '../typechain-types/Meetcap';
+
+const { deployContract } = waffle;
+const { BigNumber } = ethers;
+const { expect } = chai;
 
 
 describe('Meetcap', () => {
-  let meetcap: Contract;
+  let meetcap: Meetcap;
   let owner: SignerWithAddress;
   let addr1: SignerWithAddress;
   let addr2: SignerWithAddress;
@@ -17,11 +23,7 @@ describe('Meetcap', () => {
     [owner, addr1, addr2] = await ethers.getSigners();
     [owner, addr1] = await ethers.getSigners();
     // deploy the contract
-    const Meetcap = await ethers.getContractFactory("Meetcap");
-    const meetcap = await Meetcap.deploy();
-    await meetcap.deployed();
-    // meetcap = await ethers.getContract('Meetcap');
-    // await meetcap.deployed();
+    meetcap = (await deployContract(owner, MeetcapArtifact)) as Meetcap;
   });
 
   describe('Deployment', function () {
@@ -39,10 +41,6 @@ describe('Meetcap', () => {
 
     it('Should have 10B total supply', async () => {
       expect(await meetcap.totalSupply()).to.equal(initialSupply);
-    });
-
-    it('Should set the right owner', async function () {
-      expect(await meetcap.owner()).to.equal(owner.address);
     });
 
     it('Should assign the total supply of tokens to the owner', async function () {

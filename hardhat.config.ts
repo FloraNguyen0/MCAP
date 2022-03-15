@@ -1,8 +1,8 @@
 import { task } from 'hardhat/config';
 import '@nomiclabs/hardhat-waffle';
 import '@nomiclabs/hardhat-solhint';
-// require("@nomiclabs/hardhat-waffle");
-// require("@nomiclabs/hardhat-solhint");
+import '@typechain/hardhat';
+import '@nomiclabs/hardhat-ethers';
 
 
 // This is a sample Hardhat task. To learn how to create your own go to

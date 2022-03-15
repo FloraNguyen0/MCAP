@@ -1,3 +1,5 @@
+import { ethers } from 'hardhat';
+
 async function main () {
   // Retrieve accounts from the local node
 const accounts = await ethers.provider.listAccounts();

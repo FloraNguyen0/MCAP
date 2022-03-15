@@ -6,7 +6,7 @@ import "../library & interface/IBEP20.sol";
 import "../library & interface/SafeBEP20.sol";
 import "../library & interface/SafeMathX.sol";
 
-contract TokenTimeLock {
+contract MeetcapTimeLock {
     using SafeBEP20 for IBEP20;
     using SafeMathX for uint256;
 
@@ -68,7 +68,7 @@ contract TokenTimeLock {
     ) {
         require(
             lockDurations_.length == releasePercents_.length,
-            "TokenTimeLock: unlock length not match"
+            "MeetcapTimeLock: unlock length not match"
         );
 
         uint256 _sum;
@@ -76,18 +76,18 @@ contract TokenTimeLock {
             _sum += releasePercents_[i];
         }
 
-        require(_sum == 100, "TokenTimeLock: unlock percent not match 100");
+        require(_sum == 100, "MeetcapTimeLock: unlock percent not match 100");
 
-        require(user_ != address(0), "TokenTimeLock: user address is zero");
+        require(user_ != address(0), "MeetcapTimeLock: user address is zero");
 
-        require(token_ != address(0), "TokenTimeLock: token address is zero");
+        require(token_ != address(0), "MeetcapTimeLock: token address is zero");
 
         require(
             factory_ != address(0),
-            "TokenTimeLock: factory address is zero"
+            "MeetcapTimeLock: factory address is zero"
         );
 
-        require(amount_ > 0, "TokenTimeLock: amount must greater than zero");
+        require(amount_ > 0, "MeetcapTimeLock: amount must greater than zero");
 
         _factory = factory_;
         _user = user_;
@@ -185,12 +185,12 @@ contract TokenTimeLock {
 
         require(
             _nextReleaseIdx < numOfPhases,
-            "TokenTimeLock: all phases are released"
+            "MeetcapTimeLock: all phases are released"
         );
         require(
             block.timestamp >=
                 _startDate + _lockDurations[_nextReleaseIdx] * 1 seconds,
-            "TokenTimeLock: next phase unavailable"
+            "MeetcapTimeLock: next phase unavailable"
         );
 
         uint256 prevReleaseIdx = _nextReleaseIdx;
@@ -221,7 +221,7 @@ contract TokenTimeLock {
         uint256 balance = token().balanceOf(address(this));
         require(
             balance >= availableReleaseAmount,
-            "TokenTimeLock: insufficient balance"
+            "MeetcapTimeLock: insufficient balance"
         );
         _releasedAmount += availableReleaseAmount;
         token().safeTransfer(beneficiary(), availableReleaseAmount);

@@ -12,7 +12,8 @@ const { deployContract } = waffle;
 const { BigNumber } = ethers;
 const { expect } = chai;
 
-describe('TokenTimeLock', function () {
+
+describe('MeetcapTimeLock', function () {
   let meetcap: Meetcap;
   let meetcapTimeLock: MeetcapTimeLock;
   let owner: SignerWithAddress;
@@ -87,7 +88,7 @@ describe('TokenTimeLock', function () {
           [20, 20, 20, 20],
           await EthUtils.latestBlockTimestamp()
         )
-      ).to.revertedWith('TokenTimeLock: unlock length not match');
+      ).to.revertedWith('MeetcapTimeLock: unlock length not match');
     });
 
     it('should revert when total unlock percents not 100', async function () {
@@ -107,7 +108,7 @@ describe('TokenTimeLock', function () {
           [20, 20, 20, 20, 10],
           await EthUtils.latestBlockTimestamp()
         )
-      ).to.revertedWith('TokenTimeLock: unlock percent not match 100');
+      ).to.revertedWith('MeetcapTimeLock: unlock percent not match 100');
     });
 
     it('should revert when call initialize() more than once', async function () {
@@ -351,7 +352,7 @@ describe('TokenTimeLock', function () {
       await meetcap.transfer(meetcapTimeLock.address, 100);
 
       await expect(meetcapTimeLock.connect(addr1).release()).to.be.revertedWith(
-        'TokenTimeLock: next phase unavailable'
+        'MeetcapTimeLock: next phase unavailable'
       );
 
       // Release 1st phase
@@ -360,7 +361,7 @@ describe('TokenTimeLock', function () {
 
       // Should revert if users try to release 2nd phase
       await expect(meetcapTimeLock.connect(addr1).release()).to.be.revertedWith(
-        'TokenTimeLock: next phase unavailable'
+        'MeetcapTimeLock: next phase unavailable'
       );
 
       // Release 2nd, 3rd, 4th phase
@@ -369,7 +370,7 @@ describe('TokenTimeLock', function () {
 
       // Should revert if users try to release 5th phase
       await expect(meetcapTimeLock.connect(addr1).release()).to.be.revertedWith(
-        'TokenTimeLock: next phase unavailable'
+        'MeetcapTimeLock: next phase unavailable'
       );
     });
 
@@ -396,7 +397,7 @@ describe('TokenTimeLock', function () {
       await meetcapTimeLock.connect(addr1).release();
 
       await expect(meetcapTimeLock.connect(addr1).release()).to.be.revertedWith(
-        'TokenTimeLock: all phases are released'
+        'MeetcapTimeLock: all phases are released'
       );
     });
 
@@ -420,7 +421,7 @@ describe('TokenTimeLock', function () {
       // Release all phases
       ethers.provider.send('evm_increaseTime', [3600 * 24 * 5]);
       await expect(meetcapTimeLock.connect(addr1).release()).to.be.revertedWith(
-        'TokenTimeLock: insufficient balance'
+        'MeetcapTimeLock: insufficient balance'
       );
     });
   });

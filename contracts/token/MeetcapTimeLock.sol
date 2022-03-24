@@ -25,9 +25,6 @@ contract MeetcapTimeLock {
     /// Token address
     address private _token;
 
-    /// Factory address
-    address private _factory;
-
     /// Start date of the lock
     uint64 private _startDate;
 
@@ -43,6 +40,11 @@ contract MeetcapTimeLock {
     /// Next release phase
     uint32 private _nextReleaseIdx;
 
+    /// Factory address
+    address private _factory;
+
+    bool private _isInitialized = false;
+
     event Released(
         uint256 phaseReleasedAmount,
         uint256 totalReleasedAmount,
@@ -57,18 +59,21 @@ contract MeetcapTimeLock {
     /// - `lockDurations` and `unlockPercents` length don't match.
     /// - `unlockPercents` sum is not equal to 100 (100%).
 
-    constructor(
+    function initialize(
         address factory_,
         address user_,
         address token_,
         uint256 amount_,
-        uint32[] memory lockDurations_,
-        uint32[] memory releasePercents_,
+        uint32[] calldata lockDurations_,
+        uint32[] calldata releasePercents_,
         uint64 startDate_
-    ) {
+    ) public returns (bool) {
+        require(!_isInitialized, "Contract is already initialized!");
+        _isInitialized = true;
+        
         require(
             lockDurations_.length == releasePercents_.length,
-            "MeetcapTimeLock: unlock length not match"
+            "TokenTimeLock: unlock length not match"
         );
 
         uint256 _sum;
@@ -76,18 +81,18 @@ contract MeetcapTimeLock {
             _sum += releasePercents_[i];
         }
 
-        require(_sum == 100, "MeetcapTimeLock: unlock percent not match 100");
+        require(_sum == 100, "TokenTimeLock: unlock percent not match 100");
 
-        require(user_ != address(0), "MeetcapTimeLock: user address is zero");
+        require(user_ != address(0), "TokenTimeLock: user address is zero");
 
-        require(token_ != address(0), "MeetcapTimeLock: token address is zero");
+        require(token_ != address(0), "TokenTimeLock: token address is zero");
 
         require(
             factory_ != address(0),
-            "MeetcapTimeLock: factory address is zero"
+            "TokenTimeLock: factory address is zero"
         );
 
-        require(amount_ > 0, "MeetcapTimeLock: amount must greater than zero");
+        require(amount_ > 0, "TokenTimeLock: amount must greater than zero");
 
         _factory = factory_;
         _user = user_;
@@ -99,7 +104,10 @@ contract MeetcapTimeLock {
         _releasedAmount = 0;
         _nextReleaseIdx = 0;
         _releaseDates = new uint64[](_lockDurations.length);
+
+        return true;
     }
+
 
     function token() public view returns (IBEP20) {
         return IBEP20(_token);
@@ -141,6 +149,10 @@ contract MeetcapTimeLock {
         return _factory;
     }
 
+    function isInitialized() public view returns (bool){
+        return _isInitialized;
+    }
+
     function lockData()
         public
         view
@@ -180,6 +192,7 @@ contract MeetcapTimeLock {
     ///     + Do not meet next unlock requirements
     /// - Amount of tokens that this smart contract holds is insufficient. In this case, users should contact the owner of the token.
     /// @return Return `true` if succeeds, otherwise `false`
+    
     function release() public returns (bool) {
         uint256 numOfPhases = _lockDurations.length;
 

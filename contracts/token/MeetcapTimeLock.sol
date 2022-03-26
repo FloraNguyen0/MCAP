@@ -40,7 +40,7 @@ contract MeetcapTimeLock is Ownable {
     uint32 private _nextReleaseIdx;
 
     /// Factory address
-    // address private _factory;
+    address private _factory;
 
     bool private _isInitialized = false;
 
@@ -90,9 +90,9 @@ contract MeetcapTimeLock is Ownable {
         return _nextReleaseIdx;
     }
 
-    // function factory() public view returns (address) {
-    //     return _factory;
-    // }
+    function factory() public view returns (address) {
+        return _factory;
+    }
 
     function isInitialized() public view returns (bool){
         return _isInitialized;
@@ -111,8 +111,8 @@ contract MeetcapTimeLock is Ownable {
             uint32[] memory releasePercents_,
             uint64[] memory releaseDates_,
             uint32 nextReleaseIdx_,
+            address factory_,
             bool isInitialized_
-            // address factory_
         )
     {
         return (
@@ -125,8 +125,8 @@ contract MeetcapTimeLock is Ownable {
             releasePercents(),
             releaseDates(),
             nextReleaseIdx(),
+            factory(),    
             isInitialized()
-            // factory()
         );
     }
 
@@ -137,7 +137,7 @@ contract MeetcapTimeLock is Ownable {
     /// - `unlockPercents` sum is not equal to 100 (100%).
 
     function initialize(
-        // address factory_,
+        address factory_,
         address user_,
         address token_,
         uint256 amount_,
@@ -164,14 +164,14 @@ contract MeetcapTimeLock is Ownable {
 
         require(token_ != address(0), "TokenTimeLock: token address is zero");
 
-        // require(
-        //     factory_ != address(0),
-        //     "TokenTimeLock: factory address is zero"
-        // );
+        require(
+            factory_ != address(0),
+            "TokenTimeLock: factory address is zero"
+        );
 
         require(amount_ > 0, "TokenTimeLock: The amount must be greater than zero");
 
-        // _factory = factory_;
+        _factory = factory_;
         _user = user_;
         _token = token_;
         _startDate = startDate_;
@@ -181,6 +181,8 @@ contract MeetcapTimeLock is Ownable {
         _releasedAmount = 0;
         _nextReleaseIdx = 0;
         _releaseDates = new uint64[](_lockDurations.length);
+
+        transferOwnership(factory_);
 
         return true;
     }

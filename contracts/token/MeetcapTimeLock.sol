@@ -2,11 +2,13 @@
 
 pragma solidity ^0.8.9;
 
+import "@openzeppelin/contracts/access/Ownable.sol";
+
 import "../library & interface/IBEP20.sol";
 import "../library & interface/SafeBEP20.sol";
 import "../library & interface/SafeMathX.sol";
 
-contract MeetcapTimeLock {
+contract MeetcapTimeLock is Ownable {
     using SafeBEP20 for IBEP20;
     using SafeMathX for uint256;
 
@@ -15,9 +17,6 @@ contract MeetcapTimeLock {
 
     /// Total released amount to user
     uint256 private _releasedAmount;
-
-    /// Version
-    string private _version;
 
     /// Beneficiary
     address private _user;
@@ -41,7 +40,7 @@ contract MeetcapTimeLock {
     uint32 private _nextReleaseIdx;
 
     /// Factory address
-    address private _factory;
+    // address private _factory;
 
     bool private _isInitialized = false;
 
@@ -53,61 +52,7 @@ contract MeetcapTimeLock {
         uint64 date
     );
 
-    /// @notice Register a new lock for a user
-    /// Reverts in the following cases:
-    /// - Duplicated lock id for a user.
-    /// - `lockDurations` and `unlockPercents` length don't match.
-    /// - `unlockPercents` sum is not equal to 100 (100%).
-
-    function initialize(
-        address factory_,
-        address user_,
-        address token_,
-        uint256 amount_,
-        uint32[] calldata lockDurations_,
-        uint32[] calldata releasePercents_,
-        uint64 startDate_
-    ) public returns (bool) {
-        require(!_isInitialized, "Contract is already initialized!");
-        _isInitialized = true;
-        
-        require(
-            lockDurations_.length == releasePercents_.length,
-            "TokenTimeLock: unlock length not match"
-        );
-
-        uint256 _sum;
-        for (uint256 i = 0; i < releasePercents_.length; ++i) {
-            _sum += releasePercents_[i];
-        }
-
-        require(_sum == 100, "TokenTimeLock: unlock percent not match 100");
-
-        require(user_ != address(0), "TokenTimeLock: user address is zero");
-
-        require(token_ != address(0), "TokenTimeLock: token address is zero");
-
-        require(
-            factory_ != address(0),
-            "TokenTimeLock: factory address is zero"
-        );
-
-        require(amount_ > 0, "TokenTimeLock: amount must greater than zero");
-
-        _factory = factory_;
-        _user = user_;
-        _token = token_;
-        _startDate = startDate_;
-        _lockDurations = lockDurations_;
-        _releasePercents = releasePercents_;
-        _amount = amount_;
-        _releasedAmount = 0;
-        _nextReleaseIdx = 0;
-        _releaseDates = new uint64[](_lockDurations.length);
-
-        return true;
-    }
-
+    event safeSetupActivated(uint256 amount, address to, uint64 date);
 
     function token() public view returns (IBEP20) {
         return IBEP20(_token);
@@ -145,9 +90,9 @@ contract MeetcapTimeLock {
         return _nextReleaseIdx;
     }
 
-    function factory() public view returns (address) {
-        return _factory;
-    }
+    // function factory() public view returns (address) {
+    //     return _factory;
+    // }
 
     function isInitialized() public view returns (bool){
         return _isInitialized;
@@ -166,7 +111,8 @@ contract MeetcapTimeLock {
             uint32[] memory releasePercents_,
             uint64[] memory releaseDates_,
             uint32 nextReleaseIdx_,
-            address factory_
+            bool isInitialized_
+            // address factory_
         )
     {
         return (
@@ -179,8 +125,64 @@ contract MeetcapTimeLock {
             releasePercents(),
             releaseDates(),
             nextReleaseIdx(),
-            factory()
+            isInitialized()
+            // factory()
         );
+    }
+
+    /// @notice Register a new lock for a user
+    /// Reverts in the following cases:
+    /// - Duplicated lock id for a user.
+    /// - `lockDurations` and `unlockPercents` length don't match.
+    /// - `unlockPercents` sum is not equal to 100 (100%).
+
+    function initialize(
+        // address factory_,
+        address user_,
+        address token_,
+        uint256 amount_,
+        uint32[] calldata lockDurations_,
+        uint32[] calldata releasePercents_,
+        uint64 startDate_
+    ) public returns (bool) {
+        require(!_isInitialized, "Contract is already initialized!");
+        _isInitialized = true;
+        
+        require(
+            lockDurations_.length == releasePercents_.length,
+            "TokenTimeLock: unlock length does not match"
+        );
+
+        uint256 _sum;
+        for (uint256 i = 0; i < releasePercents_.length; ++i) {
+            _sum += releasePercents_[i];
+        }
+
+        require(_sum == 100, "TokenTimeLock: unlock percent does not match 100");
+
+        require(user_ != address(0), "TokenTimeLock: user address is zero");
+
+        require(token_ != address(0), "TokenTimeLock: token address is zero");
+
+        // require(
+        //     factory_ != address(0),
+        //     "TokenTimeLock: factory address is zero"
+        // );
+
+        require(amount_ > 0, "TokenTimeLock: The amount must be greater than zero");
+
+        // _factory = factory_;
+        _user = user_;
+        _token = token_;
+        _startDate = startDate_;
+        _lockDurations = lockDurations_;
+        _releasePercents = releasePercents_;
+        _amount = amount_;
+        _releasedAmount = 0;
+        _nextReleaseIdx = 0;
+        _releaseDates = new uint64[](_lockDurations.length);
+
+        return true;
     }
 
     /// @notice Release unlocked tokens to user.
@@ -203,7 +205,7 @@ contract MeetcapTimeLock {
         require(
             block.timestamp >=
                 _startDate + _lockDurations[_nextReleaseIdx] * 1 seconds,
-            "MeetcapTimeLock: next phase unavailable"
+            "MeetcapTimeLock: next phase is unavailable"
         );
 
         uint256 prevReleaseIdx = _nextReleaseIdx;
@@ -253,6 +255,16 @@ contract MeetcapTimeLock {
             releaseDate
         );
 
+        return true;
+    }
+
+    /// @dev This is for safety.
+    /// For example, when someone setup the contract with wrong data and accidentally transfer token to the lockup contract.
+    /// The owner can get the token back by calling this function
+    function safeSetup() public onlyOwner returns (bool) {
+        uint256 balance = token().balanceOf(address(this));
+        token().safeTransfer(owner(), balance);
+        emit safeSetupActivated(balance, owner(), uint64(block.timestamp));
         return true;
     }
 }

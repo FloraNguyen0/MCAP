@@ -23,8 +23,7 @@ describe('MeetcapTimeLock', function () {
   beforeEach(async function () {
     // await deployments.fixture(['token-time-lock', 'meetcap']);
     [owner, user, factory] = await ethers.getSigners();
-    // const contractConstructorArgs: [string, string] = [bob.address, charlie.address];
-    // +const contract = await deployContract(alice, MyContract__factory, contractConstructorArgs);
+
     meetcap = (await deployContract(owner, MeetcapArtifact)) as Meetcap;
     meetcapTimeLock = (await deployContract(owner, MeetcapTimeLockArtifact)) as MeetcapTimeLock;
   });

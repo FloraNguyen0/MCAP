@@ -8,40 +8,42 @@ import "../library & interface/IBEP20.sol";
 import "../library & interface/SafeBEP20.sol";
 import "../library & interface/SafeMathX.sol";
 
+// change public functions to external, memory to calldata if necessary
+// fix availableReleaseAmount, stepReleaseAmount if necessary
+
+
 contract MeetcapTimeLock is Ownable {
     using SafeBEP20 for IBEP20;
     using SafeMathX for uint256;
 
-    /// Total locked tokens
+    // Total amount of tokens had been locked initially
     uint256 private _amount;
 
-    /// Total released amount to user
+    // Total amount of tokens have been released
     uint256 private _releasedAmount;
 
-    /// Beneficiary
-    address private _user;
+    // Beneficiary
+    address private _beneficiary;
 
-    /// Token address
+    // Token address
     address private _token;
 
-    /// Start date of the lock
+    // Start date of the lockup period
     uint64 private _startDate;
 
-    /// Release date that user initiates a release of each phase
+    // Dates the beneficiary could start execute a release for each phase
     uint64[] private _releaseDates;
 
-    /// Lock duration (in seconds) of each phase
+    // Lock duration (in seconds) of each phase
     uint32[] private _lockDurations;
 
-    /// Release percent of each phase
+    // Release percent of each phase
     uint32[] private _releasePercents;
 
-    /// Next release phase
+    // Next release phase
     uint32 private _nextReleaseIdx;
-
-    /// Factory address
-    address private _factory;
-
+    
+    // initialized status
     bool private _isInitialized = false;
 
     event Released(
@@ -52,14 +54,14 @@ contract MeetcapTimeLock is Ownable {
         uint64 date
     );
 
-    event safeSetupActivated(uint256 amount, address to, uint64 date);
+    event SafeSetupActivated(uint256 amount, address to, uint64 date);
 
     function token() public view returns (IBEP20) {
         return IBEP20(_token);
     }
 
     function beneficiary() public view returns (address) {
-        return _user;
+        return _beneficiary;
     }
 
     function amount() public view returns (uint256) {
@@ -90,20 +92,17 @@ contract MeetcapTimeLock is Ownable {
         return _nextReleaseIdx;
     }
 
-    function factory() public view returns (address) {
-        return _factory;
-    }
-
     function isInitialized() public view returns (bool){
         return _isInitialized;
     }
 
+    // This function is created for the purpose of testing 
     function lockData()
         public
         view
         returns (
-            address user,
             address token_,
+            address beneficiary_,
             uint256 amount_,
             uint256 releasedAmount_,
             uint64 startDate_,
@@ -111,13 +110,13 @@ contract MeetcapTimeLock is Ownable {
             uint32[] memory releasePercents_,
             uint64[] memory releaseDates_,
             uint32 nextReleaseIdx_,
-            address factory_,
+            address owner_,
             bool isInitialized_
         )
     {
         return (
-            beneficiary(),
             address(token()),
+            beneficiary(),
             amount(),
             releasedAmount(),
             startDate(),
@@ -125,20 +124,16 @@ contract MeetcapTimeLock is Ownable {
             releasePercents(),
             releaseDates(),
             nextReleaseIdx(),
-            factory(),    
+            owner(),    
             isInitialized()
         );
     }
 
-    /// @notice Register a new lock for a user
-    /// Reverts in the following cases:
-    /// - Duplicated lock id for a user.
-    /// - `lockDurations` and `unlockPercents` length don't match.
-    /// - `unlockPercents` sum is not equal to 100 (100%).
-
+    /// Owner is the owner of all lockup contracts who could call safeSetup, not the deployer (see transferOwnership),
+    /// The ownership is renounced after the setup is done safely
     function initialize(
-        address factory_,
-        address user_,
+        address owner_,
+        address beneficiary_,
         address token_,
         uint256 amount_,
         uint32[] calldata lockDurations_,
@@ -158,21 +153,20 @@ contract MeetcapTimeLock is Ownable {
             _sum += releasePercents_[i];
         }
 
-        require(_sum == 100, "TokenTimeLock: unlock percent does not match 100");
+        require(_sum == 100, "TokenTimeLock: unlock percent sum is not equal to 100");
 
-        require(user_ != address(0), "TokenTimeLock: user address is zero");
+        require(beneficiary_ != address(0), "TokenTimeLock: user address is zero");
 
         require(token_ != address(0), "TokenTimeLock: token address is zero");
 
         require(
-            factory_ != address(0),
-            "TokenTimeLock: factory address is zero"
+            owner_ != address(0),
+            "TokenTimeLock: owner address is zero"
         );
 
         require(amount_ > 0, "TokenTimeLock: The amount must be greater than zero");
 
-        _factory = factory_;
-        _user = user_;
+        _beneficiary = beneficiary_;
         _token = token_;
         _startDate = startDate_;
         _lockDurations = lockDurations_;
@@ -182,7 +176,7 @@ contract MeetcapTimeLock is Ownable {
         _nextReleaseIdx = 0;
         _releaseDates = new uint64[](_lockDurations.length);
 
-        transferOwnership(factory_);
+        transferOwnership(owner_);
 
         return true;
     }
@@ -190,13 +184,7 @@ contract MeetcapTimeLock is Ownable {
     /// @notice Release unlocked tokens to user.
     /// @dev User (sender) can release unlocked tokens by calling this function.
     /// This function will release locked tokens from multiple lock phases that meets unlock requirements
-    /// Reverts in the following cases:
-    /// - No tokens to be withdrawn including:
-    ///     + All lock phases are already released
-    ///     + Do not meet next unlock requirements
-    /// - Amount of tokens that this smart contract holds is insufficient. In this case, users should contact the owner of the token.
-    /// @return Return `true` if succeeds, otherwise `false`
-    
+   
     function release() public returns (bool) {
         uint256 numOfPhases = _lockDurations.length;
 
@@ -266,7 +254,7 @@ contract MeetcapTimeLock is Ownable {
     function safeSetup() public onlyOwner returns (bool) {
         uint256 balance = token().balanceOf(address(this));
         token().safeTransfer(owner(), balance);
-        emit safeSetupActivated(balance, owner(), uint64(block.timestamp));
+        emit SafeSetupActivated(balance, owner(), uint64(block.timestamp));
         return true;
     }
 }

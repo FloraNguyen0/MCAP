@@ -3,8 +3,8 @@
 pragma solidity ^0.8.9;
 
 import "./Meetcap.sol";
-import "../libraries, interfaces, abstracts/IBEP20.sol";
-import "../libraries, interfaces, abstracts/SafeBEP20.sol";
+import "../BEP20/IBEP20.sol";
+import "../BEP20/SafeBEP20.sol";
 import "../libraries, interfaces, abstracts/Context.sol";
 import "../libraries, interfaces, abstracts/ReentrancyCheck.sol";
 

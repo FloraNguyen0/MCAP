@@ -2,10 +2,9 @@
 pragma solidity ^0.8.9;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "../libraries, interfaces, abstracts/IBEP20.sol";
-import "../libraries, interfaces, abstracts/SafeBEP20.sol";
+import "../BEP20/IBEP20.sol";
+import "../BEP20/SafeBEP20.sol";
 import "../libraries, interfaces, abstracts/SafeMathX.sol";
-// import "../libraries, interfaces, abstracts/Context.sol";
 
 
 contract MeetcapTimeLock is Ownable {

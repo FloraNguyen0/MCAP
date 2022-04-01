@@ -3,29 +3,30 @@
 pragma solidity ^0.8.9;
 
 import "./Meetcap.sol";
+import "../libraries, interfaces, abstracts/IBEP20.sol";
+import "../libraries, interfaces, abstracts/SafeBEP20.sol";
+import "../libraries, interfaces, abstracts/Context.sol";
+import "../libraries, interfaces, abstracts/ReentrancyCheck.sol";
 
-abstract contract ReentrancyCheck {
-    bool private _notEntered;
 
-    constructor() {
-        _notEntered = true;
-    }
+// consider to change internal fuctions to private
 
-    modifier nonReentrant() {
-        require(_notEntered, "Sorry, you cannot make a reentrant call");
+contract MeetcapPresale is Context, ReentrancyCheck {
+    using SafeBEP20 for IBEP20;
 
-        _notEntered = false;
+    // The token being sold
+    IBEP20 private _token;
 
-        _;
-
-        _notEntered = true;
-    }
-}
-
-contract MeetcapPresale is ReentrancyCheck {
+    // The number of token units a buyer gets per wei.
+    // The rate is the conversion between wei and the smallest and indivisible token unit.
+    // So, if you are using a rate of 1 with a ERC20Detailed token with 3 decimals called TOK
+    // 1 wei will give you 1 unit, or 0.001 TOK.
     uint256 private _rate;
+
+    // The address where funds are collected
     address payable private _presaleWallet;
-    Meetcap private _token;
+
+    // The amount of wei raised
     uint256 private _weiRaised;
 
     event TokensPurchased(
@@ -34,47 +35,73 @@ contract MeetcapPresale is ReentrancyCheck {
         uint256 amount
     );
 
-    constructor(Meetcap token_) {
-        // Token price is 0.001 Bnb
-        _rate = 1000000000000000;
-        _presaleWallet = payable(address(this));
+    constructor(uint256 rate_, address payable presaleWallet_, IBEP20 token_) {
+        require(rate_ > 0, "Crowdsale: rate is 0");
+        require(presaleWallet_ != address(0), "Crowdsale: wallet is the zero address");
+        require(address(token_) != address(0), "Crowdsale: token is the zero address");
+
+        _rate = rate_;
+        _presaleWallet = presaleWallet_;
         _token = token_;
+
+        // Token price is 0.001 Bnb
+        // _rate = 1000000000000000;
+        // _presaleWallet = payable(address(this));
+        // _token = token_;
     }
 
     receive() external payable {
-        buyTokens();
+        buyTokens(_msgSender());
     }
 
-    function token() public view returns (Meetcap) {
+    function token() public view virtual returns (IBEP20) {
         return _token;
-    }
+    } 
 
-    function rate() public view returns (uint256) {
+    function rate() public view virtual returns (uint256) {
         return _rate;
     }
 
-    function presaleWallet() public view returns (address payable) {
+    function presaleWallet() public view virtual returns (address payable) {
         return _presaleWallet;
     }
 
-    function weiRaised() public view returns (uint256) {
+    function weiRaised() public view virtual returns (uint256) {
         return _weiRaised;
     }
 
-    function buyTokens() public payable nonReentrant {
+    function buyTokens(address beneficiary) public virtual payable nonReentrant {
         uint256 weiAmount = msg.value;
+        uint256 tokenAmount = weiAmount * _rate;
 
-        uint256 tokens = weiAmount * _rate;
-
-        _preValidatePurchase(weiAmount, tokens);
+        _preValidatePurchase(beneficiary, weiAmount, tokenAmount);
 
         _weiRaised = _weiRaised + weiAmount;
 
-        _deliverTokens(msg.sender, tokens);
+        _deliverTokens(msg.sender, tokenAmount);
 
-        emit TokensPurchased(msg.sender, weiAmount, tokens);
+        emit TokensPurchased(msg.sender, weiAmount, tokenAmount);
 
         _forwardFunds();
+    }
+
+    function _preValidatePurchase(address beneficiary, uint256 weiAmount, uint256 tokenAmount)
+        internal
+        view
+    {
+        require(beneficiary != address(0), "Crowdsale: beneficiary is the zero address");
+        require(weiAmount != 0, "Sorry, you canot buy with 0 BNB");
+        require(_presaleWallet.balance >= tokenAmount);
+        this;
+    }
+
+    function _deliverTokens(address beneficiary, uint256 tokenAmount) internal {
+        _token.safeTransfer(beneficiary, tokenAmount);
+
+    }
+
+    function _forwardFunds() internal {
+        _presaleWallet.transfer(msg.value);
     }
 
     // function endPresale() public {
@@ -83,44 +110,4 @@ contract MeetcapPresale is ReentrancyCheck {
 
     //     _presaleWallet.transfer(address(this).balance);
     // }
-
-    function _preValidatePurchase(uint256 weiAmount, uint256 tokens)
-        internal
-        view
-    {
-        require(weiAmount != 0, "Sorry, you canot buy with 0 BNB");
-        require(_presaleWallet.balance >= tokens);
-        this;
-    }
-
-    function _deliverTokens(address beneficiary, uint256 tokenAmount) internal {
-        safeTransfer(_token, beneficiary, tokenAmount);
-    }
-
-    function _forwardFunds() internal {
-        _presaleWallet.transfer(msg.value);
-    }
-
-    function safeTransfer(
-        Meetcap token_,
-        address to,
-        uint256 value
-    ) internal {
-        callOptionalReturn(
-            token_,
-            abi.encodeWithSelector(token_.transfer.selector, to, value)
-        );
-    }
-
-    function callOptionalReturn(Meetcap token_, bytes memory data) private {
-        (bool success, bytes memory returndata) = address(token_).call(data);
-        require(success, "Sorry, Low-level call failed");
-
-        if (returndata.length > 0) {
-            require(
-                abi.decode(returndata, (bool)),
-                "Sorry, ERC20 operation did not succeed"
-            );
-        }
-    }
 }

@@ -1,18 +1,9 @@
 // SPDX-License-Identifier: MIT
-
 pragma solidity ^0.8.9;
 
-import "../library & interface/IBEP20.sol";
+import "../libraries, interfaces, abstracts/IBEP20.sol";
+import "../libraries, interfaces, abstracts/Context.sol";
 
-abstract contract Context {
-    function _msgSender() internal view virtual returns (address) {
-        return msg.sender;
-    }
-
-    function _msgData() internal view virtual returns (bytes calldata) {
-        return msg.data;
-    }
-}
 
 contract BEP20Token is IBEP20, Context {
     mapping(address => uint256) private _balances;

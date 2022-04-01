@@ -46,16 +46,17 @@ describe('MeetcapTimeLock', function () {
         await EthUtils.latestBlockTimestamp()
       );
       const [
-        token,
+        ownerAddress,
         beneficiaryAddress,
+        token,
         amount,
         releasedAmount,
-        startDate,
         lockDurations,
         releasePercents,
         releaseDates,
-        nextReleaseIdx,
-        ownerAddress,
+        releaseId,
+        startDate,
+        isInitialized
       ] = await meetcapTimeLock.lockData();
 
       expect(amount).to.equal(10);
@@ -67,7 +68,7 @@ describe('MeetcapTimeLock', function () {
         daysToSeconds(5),
       ]);
       expect(releasePercents).to.deep.equal([20, 20, 20, 20, 20]);
-      expect(nextReleaseIdx).to.equal(0);
+      expect(releaseId).to.equal(0);
       expect(releasedAmount).to.equal(0);
       expect(ownerAddress).to.equal(owner.address);
     });

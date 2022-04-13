@@ -1,14 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.9;
 
-import "@openzeppelin/contracts/access/Ownable.sol";
+import "../Utilities/Ownable.sol";
+import "../Utilities/SafeMathX.sol";
 import "../BEP20/IBEP20.sol";
-import "../BEP20/SafeBEP20.sol";
-import "../libraries, interfaces, abstracts/SafeMathX.sol";
 
 
 contract MeetcapTimeLock is Ownable {
-    using SafeBEP20 for IBEP20;
     using SafeMathX for uint256;
 
     // Beneficiary
@@ -148,18 +146,30 @@ contract MeetcapTimeLock is Ownable {
             _sum += releasePercents_[i];
         }
 
-        require(_sum == 100, "TokenTimeLock: unlock percent sum is not equal to 100");
+        require(
+            _sum == 100, 
+            "TokenTimeLock: unlock percent sum is not equal to 100"
+        );
 
-        require(beneficiary_ != address(0), "TokenTimeLock: user address is zero");
+        require(
+            beneficiary_ != address(0),
+            "TokenTimeLock: user address is zero"
+        );
 
-        require(address(token_) != address(0), "TokenTimeLock: token address is zero");
+        require(
+            address(token_) != address(0), 
+            "TokenTimeLock: token address is zero"
+        );
 
         require(
             owner_ != address(0),
             "TokenTimeLock: owner address is zero"
         );
 
-        require(amount_ > 0, "TokenTimeLock: The amount must be greater than zero");
+        require(
+            amount_ > 0, 
+            "TokenTimeLock: The amount must be greater than zero"
+        );
 
         _beneficiary = beneficiary_;
         _token = token_;
@@ -224,7 +234,7 @@ contract MeetcapTimeLock is Ownable {
             "MeetcapTimeLock: insufficient balance"
         );
         _totalReleasedAmount += releasedAmount;
-        _token.safeTransfer(_beneficiary, releasedAmount);
+        _token.transfer(_beneficiary, releasedAmount);
 
         uint64 releaseDate = uint64(block.timestamp);
 
@@ -249,9 +259,8 @@ contract MeetcapTimeLock is Ownable {
 
     function safeSetup() public virtual onlyOwner returns (bool) {
         uint256 balance = _token.balanceOf(address(this));
-        _token.safeTransfer(owner(), balance);
+        _token.transfer(owner(), balance);
         emit SafeSetupActivated(balance, owner(), uint64(block.timestamp));
         return true;
     }
 }
-// try diffent uint types

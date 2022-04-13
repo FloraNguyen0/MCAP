@@ -138,7 +138,7 @@ contract MeetcapTimeLock is Ownable {
         
         require(
             lockDurations_.length == releasePercents_.length,
-            "TokenTimeLock: unlock length does not match"
+            "Unlock length does not match"
         );
 
         uint256 _sum;
@@ -148,27 +148,27 @@ contract MeetcapTimeLock is Ownable {
 
         require(
             _sum == 100, 
-            "TokenTimeLock: unlock percent sum is not equal to 100"
+            "Unlock percent sum is not equal to 100"
         );
 
         require(
             beneficiary_ != address(0),
-            "TokenTimeLock: user address is zero"
+            "User address cannot be the zero address"
         );
 
         require(
             address(token_) != address(0), 
-            "TokenTimeLock: token address is zero"
+            "Token address cannot be the zero address"
         );
 
         require(
             owner_ != address(0),
-            "TokenTimeLock: owner address is zero"
+            "Owner address cannot be the zero address"
         );
 
         require(
             amount_ > 0, 
-            "TokenTimeLock: The amount must be greater than zero"
+            "The amount must be greater than zero"
         );
 
         _beneficiary = beneficiary_;
@@ -195,12 +195,12 @@ contract MeetcapTimeLock is Ownable {
 
         require(
             _releaseId < phases,
-            "MeetcapTimeLock: all phases have already been released"
+            "All phases have already been released"
         );
         require(
             block.timestamp >=
                 _startDate + _lockDurations[_releaseId] * 1 seconds,
-            "MeetcapTimeLock: next phase is unavailable"
+            "Next phase is unavailable"
         );
 
         uint256 preReleaseId = _releaseId;
@@ -231,7 +231,7 @@ contract MeetcapTimeLock is Ownable {
         uint256 balance = _token.balanceOf(address(this));
         require(
             balance >= releasedAmount,
-            "MeetcapTimeLock: insufficient balance"
+            "Insufficient balance"
         );
         _totalReleasedAmount += releasedAmount;
         _token.transfer(_beneficiary, releasedAmount);
@@ -260,7 +260,9 @@ contract MeetcapTimeLock is Ownable {
     function safeSetup() public virtual onlyOwner returns (bool) {
         uint256 balance = _token.balanceOf(address(this));
         _token.transfer(owner(), balance);
+
         emit SafeSetupActivated(balance, owner(), uint64(block.timestamp));
+
         return true;
     }
 }

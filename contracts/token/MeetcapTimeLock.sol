@@ -35,9 +35,6 @@ contract MeetcapTimeLock is Ownable {
 
     // Start date of the lockup period
     uint64 private _startDate;
-    
-    // Initialized status
-    bool private _isInitialized = false;
 
     event Released(
         uint256 releasedAmount,
@@ -84,10 +81,6 @@ contract MeetcapTimeLock is Ownable {
         return _startDate;
     }
 
-    function isInitialized() public view virtual returns (bool){
-        return _isInitialized;
-    }
-
     // This function is created for the purpose of testing 
     function lockData()
         public
@@ -103,8 +96,7 @@ contract MeetcapTimeLock is Ownable {
             uint32[] memory lockDurations_,
             uint32[] memory releasePercents_,
             uint64[] memory releaseDates_,
-            uint64 startDate_,
-            bool isInitialized_
+            uint64 startDate_
         )
     {
         return (
@@ -117,8 +109,7 @@ contract MeetcapTimeLock is Ownable {
             lockDurations(),
             releasePercents(),
             releaseDates(),
-            startDate(),
-            isInitialized()
+            startDate()
         );
     }
 
@@ -132,10 +123,7 @@ contract MeetcapTimeLock is Ownable {
         uint32[] calldata lockDurations_,
         uint32[] calldata releasePercents_,
         uint64 startDate_
-    ) public virtual returns (bool) {
-        require(!_isInitialized, "Contract is already initialized!");
-        _isInitialized = true;
-        
+    ) public virtual returns (bool) {     
         require(
             lockDurations_.length == releasePercents_.length,
             "Unlock length does not match"
@@ -148,7 +136,7 @@ contract MeetcapTimeLock is Ownable {
 
         require(
             _sum == 100, 
-            "Unlock percent sum is not equal to 100"
+            "Total unlock percent is not equal to 100"
         );
 
         require(

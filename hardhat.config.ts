@@ -29,6 +29,10 @@ module.exports = {
       url: "http://127.0.0.1:8545"
     },
     hardhat: {
+      network: {
+        accounts: {
+        }
+      }
     },
   },
   solidity: {
@@ -37,7 +41,7 @@ module.exports = {
       evmVersion: "constantinople",
       optimizer: {
         enabled: true,
-        runs: 1000,
+        runs: 200,
       },
     },
   },

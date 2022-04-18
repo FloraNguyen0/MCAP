@@ -11,7 +11,7 @@ const { BigNumber } = ethers;
 const { expect } = chai;
 
 
-describe('Meetcap', () => {
+describe('Meetcap token contract test', () => {
   let meetcap: Meetcap;
   let deployer: SignerWithAddress;
   let addr1: SignerWithAddress;
@@ -27,30 +27,15 @@ describe('Meetcap', () => {
     meetcap = (await deployContract(deployer, MeetcapArtifact)) as Meetcap;
   });
 
+  it('Test Meetcap metadata', async function () {
+    expect(await meetcap.name()).to.equal(name);
+    expect(await meetcap.symbol()).to.equal(symbol);
+    expect(await meetcap.decimals()).to.equal(18);
+    expect(await meetcap.totalSupply()).to.equal(initialSupply);
+    const deployerBalance = await meetcap.balanceOf(deployer.address);
+    const totalSupply = await meetcap.totalSupply();
 
-  describe('Metadata test', function () {
-    it('Should have a name', async function () {
-      expect(await meetcap.name()).to.equal(name);
-    });
-
-    it('Should have a symbol', async function () {
-      expect(await meetcap.symbol()).to.equal(symbol);
-    });
-
-    it('Should have 18 decimals', async () => {
-      expect(await meetcap.decimals()).to.equal(18);
-    });
-
-    it('Should have 10B total supply', async () => {
-      expect(await meetcap.totalSupply()).to.equal(initialSupply);
-    });
-
-    it('Should assign the total supply of tokens to the deployer', async function () {
-      const deployerBalance = await meetcap.balanceOf(deployer.address);
-      const totalSupply = await meetcap.totalSupply();
-
-      expect(totalSupply).to.equal(deployerBalance);
-    });
+    expect(totalSupply).to.equal(deployerBalance);
   });
 
 
@@ -214,5 +199,6 @@ describe('Meetcap', () => {
 
     describeBurn('For entire balance', initialSupply);
     describeBurn('For less amount than balance', initialSupply.sub(1));
+    describeBurn('For 0 amount', 0);
   })
 });

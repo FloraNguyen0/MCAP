@@ -1,17 +1,12 @@
 import { ethers, waffle } from 'hardhat';
 import chai from 'chai';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
-
 import MeetcapArtifact from '../artifacts/contracts/token/Meetcap.sol/Meetcap.json';
 import MeetcapPresaleArtifact from '../artifacts/contracts/token/MeetcapPresale.sol/MeetcapPresale.json';
 import { Meetcap } from '../typechain-types/Meetcap';
 import { MeetcapPresale } from '../typechain-types/MeetcapPresale';
 import { parseEther } from '@ethersproject/units';
-import { getAddress } from '@ethersproject/address';
-import { connect } from 'http2';
-import { utils } from 'mocha';
 import { ContractTransaction } from '@ethersproject/contracts';
-import { BigNumberish } from '@ethersproject/bignumber';
 
 const { deployContract } = waffle;
 const { BigNumber } = ethers;

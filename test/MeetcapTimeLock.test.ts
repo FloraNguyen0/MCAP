@@ -7,7 +7,6 @@ import { Meetcap } from '../typechain-types/Meetcap';
 import { MeetcapTimeLock } from '../typechain-types/MeetcapTimeLock'
 import MeetcapArtifact from '../artifacts/contracts/token/Meetcap.sol/Meetcap.json';
 import MeetcapTimeLockArtifact from '../artifacts/contracts/token/MeetcapTimeLock.sol/MeetcapTimeLock.json';
-import { boolean } from 'hardhat/internal/core/params/argumentTypes';
 
 const { deployContract } = waffle;
 const { BigNumber } = ethers;

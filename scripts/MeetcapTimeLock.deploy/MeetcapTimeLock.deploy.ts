@@ -9,9 +9,9 @@ async function main() {
 
     // Deployment data
     const networkName = hre.network.name;
-    console.log('Deploying to network', networkName);
-    console.log('Meetcap timelock deployed to:', meetcapTimeLock.address);
-    console.log("Deploying contracts with the account:", deployer.address);
+    console.log('Deploying to the network:', networkName);
+    console.log('Meetcap timelock deployed to the address:', meetcapTimeLock.address);
+    console.log("Deploying contracts by the account:", deployer.address);
 }
 
 main()

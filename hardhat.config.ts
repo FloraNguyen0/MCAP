@@ -1,12 +1,11 @@
 import { task } from 'hardhat/config';
-// import * as dotenv from 'dotenv';
+import 'dotenv/config'
 import '@nomiclabs/hardhat-waffle';
 import '@nomiclabs/hardhat-solhint';
 import '@typechain/hardhat';
 import '@nomiclabs/hardhat-ethers';
+import "@nomiclabs/hardhat-etherscan";
 
-
-// dotenv.config();
 
 // This is a sample Hardhat task.
 task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
@@ -46,48 +45,49 @@ module.exports = {
         }
       }
     },
-    // matic_testnet: {
-    //   url: 'https://rpc-mumbai.maticvigil.com/',
-    //   chainId: 80001,
-    //   accounts: [process.env.BSC_TESTNET_DEPLOYER_PRIVATE_KEY as string],
-    //   // live: true,
-    // },
-    // matic_mainnet: {
-    //   url: 'https://polygon-rpc.com/',
-    //   chainId: 137,
-    //   accounts: [process.env.BSC_TESTNET_DEPLOYER_PRIVATE_KEY as string],
-    //   // live: true,
-    // },
-    // bsc_testnet: {
-    //   url: 'https://data-seed-prebsc-1-s1.binance.org:8545',
-    //   chainId: 97,
-    //   accounts: [process.env.BSC_TESTNET_DEPLOYER_PRIVATE_KEY as string],
-    //   // live: true,
-    // },
-    // bsc_devnet: {
-    //   url: 'https://data-seed-prebsc-1-s1.binance.org:8545',
-    //   accounts: [process.env.BSC_DEVNET_DEPLOYER_PRIVATE_KEY as string],
-    //   // live: true,
-    //   tags: ['devnet'],
-    //   chainId: 97,
-    // },
-    // bsc_mainnet: {
-    //   url: 'https://bsc-dataseed.binance.org/',
-    //   chainId: 56,
-    //   accounts: [process.env.BSC_MAINNET_DEPLOYER_PRIVATE_KEY as string],
-    //   // accounts: [`0x${DEPLOYER_PRIVATE_KEY}`],
-    //   // live: true,
-    // },
-    // goerli: {
-    //   url: 'https://rpc.slock.it/goerli',
-    //   accounts: [process.env.BSC_TESTNET_DEPLOYER_PRIVATE_KEY as string],
-    //   chainId: 5,
-    // },
-    // rinkeby: {
-    //   url: 'https://rinkeby.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161',
-    //   accounts: [process.env.BSC_TESTNET_DEPLOYER_PRIVATE_KEY as string],
-    //   chainId: 4,
-    // },
+    matic_testnet: {
+      url: 'https://rpc-mumbai.maticvigil.com/',
+      chainId: 80001,
+      // accounts: ['0x', process.env.DEPLOYER_PRIVATE_KEY as string],
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY as string],
+      // live: true,
+    },
+    matic_mainnet: {
+      url: 'https://polygon-rpc.com/',
+      chainId: 137,
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY as string],
+      // live: true,
+    },
+    bsc_testnet: {
+      url: 'https://data-seed-prebsc-1-s1.binance.org:8545',
+      chainId: 97,
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY as string],
+      // live: true,
+    },
+    bsc_devnet: {
+      url: 'https://data-seed-prebsc-1-s1.binance.org:8545',
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY as string],
+      // live: true,
+      tags: ['devnet'],
+      chainId: 97,
+    },
+    bsc_mainnet: {
+      url: 'https://bsc-dataseed.binance.org/',
+      chainId: 56,
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY as string],
+      // accounts: ['0x${process.env.DEPLOYER_PRIVATE_KEY}'],
+      // live: true,
+    },
+    goerli: {
+      url: 'https://rpc.slock.it/goerli',
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY as string],
+      chainId: 5,
+    },
+    rinkeby: {
+      url: 'https://rinkeby.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161',
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY as string],
+      chainId: 4,
+    },
   },
   paths: {
     sources: "./contracts",

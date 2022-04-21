@@ -10,9 +10,9 @@ async function main() {
 
     // Deployment data
     const networkName = hre.network.name;
-    console.log('Deploying to network', networkName);
-    console.log('Meetcap tokens deployed to:', meetcap.address);
-    console.log("Deploying contracts with the account:", deployer.address);
+    console.log('Deploying to the network:', networkName);
+    console.log('Meetcap tokens deployed to the address:', meetcap.address);
+    console.log("Deploying contracts by the account:", deployer.address);
 }
 
 main()

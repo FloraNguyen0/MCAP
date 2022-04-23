@@ -5,7 +5,7 @@ import "../BEP20/BEP20Burnable.sol";
 
 
 contract Meetcap is BEP20Burnable {
-    constructor() BEP20("Meetcap", "MC") {
+    constructor() BEP20("Meetcap", "MCAP") {
         _mint(msg.sender, 10000000000 * 10 ** decimals());
     }
 }

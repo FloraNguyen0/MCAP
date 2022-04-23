@@ -35,6 +35,9 @@ module.exports = {
       },
     },
   },
+  etherscan: {
+    apiKey: process.env.POLYGONSCAN_API_KEY
+  },
   networks: {
     localhost: {
       url: "http://127.0.0.1:8545"
@@ -48,25 +51,24 @@ module.exports = {
     matic_testnet: {
       url: 'https://rpc-mumbai.maticvigil.com/',
       chainId: 80001,
-      // accounts: ['0x', process.env.DEPLOYER_PRIVATE_KEY as string],
-      accounts: [process.env.DEPLOYER_PRIVATE_KEY as string],
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY],
       // live: true,
     },
     matic_mainnet: {
       url: 'https://polygon-rpc.com/',
       chainId: 137,
-      accounts: [process.env.DEPLOYER_PRIVATE_KEY as string],
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY],
       // live: true,
     },
     bsc_testnet: {
       url: 'https://data-seed-prebsc-1-s1.binance.org:8545',
       chainId: 97,
-      accounts: [process.env.DEPLOYER_PRIVATE_KEY as string],
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY],
       // live: true,
     },
     bsc_devnet: {
       url: 'https://data-seed-prebsc-1-s1.binance.org:8545',
-      accounts: [process.env.DEPLOYER_PRIVATE_KEY as string],
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY],
       // live: true,
       tags: ['devnet'],
       chainId: 97,
@@ -74,18 +76,17 @@ module.exports = {
     bsc_mainnet: {
       url: 'https://bsc-dataseed.binance.org/',
       chainId: 56,
-      accounts: [process.env.DEPLOYER_PRIVATE_KEY as string],
-      // accounts: ['0x${process.env.DEPLOYER_PRIVATE_KEY}'],
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY],
       // live: true,
     },
     goerli: {
       url: 'https://rpc.slock.it/goerli',
-      accounts: [process.env.DEPLOYER_PRIVATE_KEY as string],
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY],
       chainId: 5,
     },
     rinkeby: {
       url: 'https://rinkeby.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161',
-      accounts: [process.env.DEPLOYER_PRIVATE_KEY as string],
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY],
       chainId: 4,
     },
   },
@@ -96,3 +97,6 @@ module.exports = {
     artifacts: "./artifacts"
   },
 };
+
+
+// npx hardhat verify --network matic deployed contract

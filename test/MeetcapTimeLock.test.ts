@@ -13,12 +13,14 @@ const { BigNumber } = ethers;
 const { expect } = chai;
 
 
-describe('MeetcapTimeLock', function () {
+describe.only('MeetcapTimeLock', function () {
   let meetcap: Meetcap;
   let meetcapTimeLock: MeetcapTimeLock;
   let deployer: SignerWithAddress;
   let beneficiary: SignerWithAddress;
   let owner: SignerWithAddress;
+
+  const zeroAddress = ethers.constants.AddressZero;
 
   beforeEach(async function () {
     // await deployments.fixture(['token-time-lock', 'meetcap']);
@@ -32,9 +34,123 @@ describe('MeetcapTimeLock', function () {
 
 
   describe('Register new lock', function () {
-    it('New lock should be stored successfully', async function () {
+    it('Should revert when unlock percent and unlock dates length do not match', async function () {
+      await expect(
+        meetcapTimeLock.initialize(
+          beneficiary.address,
+          meetcap.address,
+          10,
+          [
+            daysToSeconds(1),
+            daysToSeconds(2),
+            daysToSeconds(3),
+            daysToSeconds(4),
+            daysToSeconds(5),
+          ],
+          [20, 20, 20, 20],
+          await EthUtils.latestBlockTimestamp()
+        )
+      ).to.revertedWith('Unlock length does not match');
+    });
+
+    it('Should revert when total unlock percent is not equal 100', async function () {
+      await expect(
+        meetcapTimeLock.initialize(
+          beneficiary.address,
+          meetcap.address,
+          10,
+          [
+            daysToSeconds(1),
+            daysToSeconds(2),
+            daysToSeconds(3),
+            daysToSeconds(4),
+            daysToSeconds(5),
+          ],
+          [20, 20, 20, 20, 10],
+          await EthUtils.latestBlockTimestamp()
+        )
+      ).to.revertedWith('Total unlock percent is not equal to 100');
+    });
+
+    it('Should revert when the user address is the zero address', async function () {
+      await expect(
+        meetcapTimeLock.initialize(
+          zeroAddress,
+          meetcap.address,
+          10,
+          [
+            daysToSeconds(1),
+            daysToSeconds(2),
+            daysToSeconds(3),
+            daysToSeconds(4),
+            daysToSeconds(5),
+          ],
+          [20, 20, 20, 20, 20],
+          await EthUtils.latestBlockTimestamp()
+        )
+      ).to.revertedWith('User address cannot be the zero address');
+    });
+
+    it('Should revert when the token address is the zero address', async function () {
+      await expect(
+        meetcapTimeLock.initialize(
+          beneficiary.address,
+          zeroAddress,
+          10,
+          [
+            daysToSeconds(1),
+            daysToSeconds(2),
+            daysToSeconds(3),
+            daysToSeconds(4),
+            daysToSeconds(5),
+          ],
+          [20, 20, 20, 20, 20],
+          await EthUtils.latestBlockTimestamp()
+        )
+      ).to.revertedWith('Token address cannot be the zero address');
+    });
+
+    it('Should revert when the total allocation is zero', async function () {
+      await expect(
+        meetcapTimeLock.initialize(
+          beneficiary.address,
+          meetcap.address,
+          0,
+          [
+            daysToSeconds(1),
+            daysToSeconds(2),
+            daysToSeconds(3),
+            daysToSeconds(4),
+            daysToSeconds(5),
+          ],
+          [20, 20, 20, 20, 20],
+          await EthUtils.latestBlockTimestamp()
+        )
+      ).to.revertedWith('The total allocation must be greater than zero');
+    });
+
+    it('Should set owner correctly when initialize()', async function () {
       await meetcapTimeLock.initialize(
-        owner.address,
+        beneficiary.address,
+        meetcap.address,
+        10,
+        [
+          daysToSeconds(1),
+          daysToSeconds(2),
+          daysToSeconds(3),
+          daysToSeconds(4),
+          daysToSeconds(5),
+        ],
+        [20, 20, 20, 20, 20],
+        await EthUtils.latestBlockTimestamp()
+      );
+
+      expect(await meetcapTimeLock.owner()).to.equal(deployer.address);
+    });
+
+    it('New lock should be stored successfully', async function () {
+      console.log(await meetcap.balanceOf(deployer.address),);
+      await meetcapTimeLock.initialize(
         beneficiary.address,
         meetcap.address,
         10,
@@ -59,7 +175,7 @@ describe('MeetcapTimeLock', function () {
         lockDurations,
         releasePercents,
         releaseDates,
-        startDate,
+        startDate
       ] = await meetcapTimeLock.lockData();
 
       expect(amount).to.equal(10);
@@ -73,67 +189,7 @@ describe('MeetcapTimeLock', function () {
       expect(releasePercents).to.deep.equal([20, 20, 20, 20, 20]);
       expect(releaseId).to.equal(0);
       expect(totalReleasedAmount).to.equal(0);
-      expect(ownerAddress).to.equal(owner.address);
-    });
-
-    it('Should revert when unlock percents and unlock dates length not match', async function () {
-      await expect(
-        meetcapTimeLock.initialize(
-          owner.address,
-          beneficiary.address,
-          meetcap.address,
-          10,
-          [
-            daysToSeconds(1),
-            daysToSeconds(2),
-            daysToSeconds(3),
-            daysToSeconds(4),
-            daysToSeconds(5),
-          ],
-          [20, 20, 20, 20],
-          await EthUtils.latestBlockTimestamp()
-        )
-      ).to.revertedWith('Unlock length does not match');
-    });
-
-    it('Should revert when total unlock percents not 100', async function () {
-      await expect(
-        meetcapTimeLock.initialize(
-          owner.address,
-          beneficiary.address,
-          meetcap.address,
-          10,
-          [
-            daysToSeconds(1),
-            daysToSeconds(2),
-            daysToSeconds(3),
-            daysToSeconds(4),
-            daysToSeconds(5),
-          ],
-          [20, 20, 20, 20, 10],
-          await EthUtils.latestBlockTimestamp()
-        )
-      ).to.revertedWith('Total unlock percent is not equal to 100');
-    });
-
-    it('Should set owner correctly when initialize()', async function () {
-      await meetcapTimeLock.initialize(
-        owner.address,
-        beneficiary.address,
-        meetcap.address,
-        10,
-        [
-          daysToSeconds(1),
-          daysToSeconds(2),
-          daysToSeconds(3),
-          daysToSeconds(4),
-          daysToSeconds(5),
-        ],
-        [20, 20, 20, 20, 20],
-        await EthUtils.latestBlockTimestamp()
-      );
-
-      expect(await meetcapTimeLock.owner()).to.equal(owner.address);
+      expect(ownerAddress).to.equal(deployer.address);
     });
   });
 
@@ -141,7 +197,6 @@ describe('MeetcapTimeLock', function () {
   describe('Release locked tokens', function () {
     it('Should release locked tokens to correct beneficiary when unlock conditions are met', async function () {
       await meetcapTimeLock.initialize(
-        owner.address,
         beneficiary.address,
         meetcap.address,
         BigNumber.from(100_000_000).mul(
@@ -196,7 +251,6 @@ describe('MeetcapTimeLock', function () {
     // can't have an exact match of timestamp
     it('Should emit Release event with correct data', async function () {
       await meetcapTimeLock.initialize(
-        owner.address,
         beneficiary.address,
         meetcap.address,
         100,
@@ -222,17 +276,16 @@ describe('MeetcapTimeLock', function () {
       ethers.provider.send('evm_increaseTime', [3600 * 24]);
       await expect(meetcapTimeLock.connect(beneficiary).release())
         .to.emit(meetcapTimeLock, 'Released')
-        .withArgs(20, 20, 1, releaseDates[0]);
+        .withArgs(20, 1,);
 
       ethers.provider.send('evm_increaseTime', [3600 * 24 * 4]);
       await expect(meetcapTimeLock.connect(beneficiary).release())
         .to.emit(meetcapTimeLock, 'Released')
-        .withArgs(80, 100, 5, releaseDates[1]);
+        .withArgs(80, 5);
     });
 
     it('Just to check what maximum gas that release all phases at a time', async function () {
       await meetcapTimeLock.initialize(
-        owner.address,
         beneficiary.address,
         meetcap.address,
         100,
@@ -258,7 +311,6 @@ describe('MeetcapTimeLock', function () {
     // can't have an exact match of timestamp
     it('Should set release dates correct', async function () {
       await meetcapTimeLock.initialize(
-        owner.address,
         beneficiary.address,
         meetcap.address,
         100,
@@ -304,9 +356,8 @@ describe('MeetcapTimeLock', function () {
       expect(releaseDates_2[4]).to.equal(expectedReleaseDates[4]);
     });
 
-    it(`Should revert when does not meet next unlock phase requirements`, async function () {
+    it(`Should revert when not meet next unlock phase requirements`, async function () {
       await meetcapTimeLock.initialize(
-        owner.address,
         beneficiary.address,
         meetcap.address,
         10,
@@ -324,7 +375,7 @@ describe('MeetcapTimeLock', function () {
       await meetcap.transfer(meetcapTimeLock.address, 100);
 
       await expect(meetcapTimeLock.connect(beneficiary).release()).to.be.revertedWith(
-        'Next phase is unavailable'
+        'Current time is before release time'
       );
 
       // Release 1st phase
@@ -333,7 +384,7 @@ describe('MeetcapTimeLock', function () {
 
       // Should revert if users try to release 2nd phase
       await expect(meetcapTimeLock.connect(beneficiary).release()).to.be.revertedWith(
-        'Next phase is unavailable'
+        'Current time is before release time'
       );
 
       // Release 2nd, 3rd, 4th phase
@@ -342,13 +393,12 @@ describe('MeetcapTimeLock', function () {
 
       // Should revert if users try to release 5th phase
       await expect(meetcapTimeLock.connect(beneficiary).release()).to.be.revertedWith(
-        'Next phase is unavailable'
+        'Current time is before release time'
       );
     });
 
     it('Should revert when all lock phases are released', async function () {
       await meetcapTimeLock.initialize(
-        owner.address,
         beneficiary.address,
         meetcap.address,
         10,
@@ -375,7 +425,6 @@ describe('MeetcapTimeLock', function () {
 
     it('Should revert when contract has insufficient balance to withdraw', async function () {
       await meetcapTimeLock.initialize(
-        owner.address,
         beneficiary.address,
         meetcap.address,
         100,
@@ -393,7 +442,7 @@ describe('MeetcapTimeLock', function () {
       // Release all phases
       ethers.provider.send('evm_increaseTime', [3600 * 24 * 5]);
       await expect(meetcapTimeLock.connect(beneficiary).release()).to.be.revertedWith(
-        'Insufficient balance'
+        'ERC20: transfer amount exceeds balance'
       );
     });
   });

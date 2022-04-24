@@ -2,16 +2,13 @@
 pragma solidity ^0.8.9;
 
 import "./Meetcap.sol";
-import "../BEP20/IBEP20.sol";
+import "../ERC20/IERC20.sol";
 import "../Utilities/Context.sol";
 import "../Utilities/ReentrancyCheck.sol";
 import "../Utilities/Ownable.sol";
 
 
 contract MeetcapPresale is Context, ReentrancyCheck, Ownable {
-    /// The token being sold
-    IBEP20 private _token;
-
     // How many token units a buyer gets per wei.
     // The rate is the conversion between wei and the smallest and indivisible token unit.
     uint256 private _rate;
@@ -19,8 +16,8 @@ contract MeetcapPresale is Context, ReentrancyCheck, Ownable {
     /// The amount of wei raised
     uint256 private _weiRaised;
 
-    /// The address where funds are collected
-    address payable private _adminAddress;
+    /// The token being sold
+    IERC20 private _token;
 
     event TokensPurchased(
         address indexed purchaser,
@@ -29,31 +26,21 @@ contract MeetcapPresale is Context, ReentrancyCheck, Ownable {
         uint256 tokensBought
     );
 
-    constructor(uint256 rate_, address payable adminAddress_, IBEP20 token_) {
+    constructor(uint256 rate_, IERC20 token_) {
         require(rate_ > 0, "The token rate cannot be 0");
-        require(
-            adminAddress_ != address(0), 
-            "Wallet address cannot be the zero address"
-        );
+       
         require(
             address(token_) != address(0), 
             "Token address cannot be the zero address"
         );
 
         _rate = rate_;
-        _adminAddress = adminAddress_;
         _token = token_;
-
-        transferOwnership(adminAddress_);
     }
 
     receive() external payable {
         buyTokens(_msgSender());
     }
-
-    function token() public view virtual returns (IBEP20) {
-        return _token;
-    } 
 
     function rate() public view virtual returns (uint256) {
         return _rate;
@@ -63,10 +50,9 @@ contract MeetcapPresale is Context, ReentrancyCheck, Ownable {
         return _weiRaised;
     }
 
-    function adminAddress() public view virtual returns (address payable) {
-        return _adminAddress;
-    }
-
+    function token() public view virtual returns (IERC20) {
+        return _token;
+    } 
     
     function buyTokens(address beneficiary) 
         public 
@@ -97,7 +83,7 @@ contract MeetcapPresale is Context, ReentrancyCheck, Ownable {
     {
         require(address(this).balance >= weiAmount, "Insufficient balance");
 
-        _transferEth(_adminAddress, weiAmount);
+        _transferEth(payable(owner()), weiAmount);
 
         return true;
     }
@@ -110,8 +96,8 @@ contract MeetcapPresale is Context, ReentrancyCheck, Ownable {
         uint256 tokenBalance = _token.balanceOf(address(this));
         uint256 weiBalance = address(this).balance;
 
-        _token.transfer(_adminAddress, tokenBalance);
-        _transferEth(_adminAddress, weiBalance);
+        _token.transfer(owner(), tokenBalance);
+        _transferEth(payable(owner()), weiBalance);
 
         return true;
     }

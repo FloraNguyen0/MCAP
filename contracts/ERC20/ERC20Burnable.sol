@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.9;
 
-import "./BEP20.sol";
+import "./ERC20.sol";
 import "../Utilities/Context.sol";
 
 
-abstract contract BEP20Burnable is Context, BEP20 {
+abstract contract ERC20Burnable is Context, ERC20 {
     function burn(uint256 amount) public virtual {
         _burn(_msgSender(), amount);
     }

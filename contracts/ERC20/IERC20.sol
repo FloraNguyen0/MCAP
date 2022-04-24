@@ -2,7 +2,7 @@
 pragma solidity ^0.8.9;
 
 
-interface IBEP20 {
+interface IERC20 {
     // Note that `value` may be zero.
     event Transfer(address indexed from, address indexed to, uint256 value);
     event Approval(

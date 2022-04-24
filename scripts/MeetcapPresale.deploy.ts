@@ -9,7 +9,7 @@ async function main() {
     // Deploy MeetcapPresale
     const MeetcapPresale = await hre.ethers.getContractFactory('MeetcapPresale');
     // Change to the real meetcap address when deploying to mainnet
-    const meetcapPresale = await MeetcapPresale.deploy(1000, deployer.address, meetcapAddress);
+    const meetcapPresale = await MeetcapPresale.deploy(1500, deployer.address, meetcapAddress);
     await meetcapPresale.deployed();
 
     // Deployment data

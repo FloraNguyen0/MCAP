@@ -18,7 +18,7 @@ describe('Meetcap token contract test', () => {
   let addr2: SignerWithAddress;
   const zeroAddress = ethers.constants.AddressZero;
   const name = "Meetcap";
-  const symbol = 'MC';
+  const symbol = 'MCAP';
   const initialSupply = BigNumber.from(10_000_000_000).mul(BigNumber.from(10).pow(18));
 
   beforeEach(async () => {
@@ -43,13 +43,13 @@ describe('Meetcap token contract test', () => {
     it('Should revert when the sender is the zero address', async function () {
       const tx = meetcap.transferFrom(zeroAddress, addr1.address, initialSupply);
 
-      await expect(tx).to.revertedWith('BEP20: insufficient allowance');
+      await expect(tx).to.revertedWith('ERC20: insufficient allowance');
     })
 
     it('Should revert when the receiver is the zero address', async function () {
       const tx = meetcap.transfer(zeroAddress, initialSupply);
 
-      await expect(tx).to.revertedWith('BEP20: transfer to the zero address');
+      await expect(tx).to.revertedWith('ERC20: transfer to the zero address');
     })
 
     it('Should revert when the sender doesn’t have enough tokens', async function () {
@@ -57,7 +57,7 @@ describe('Meetcap token contract test', () => {
       const tx = meetcap.connect(addr1).transfer(deployer.address, 100)
 
       // Try to send tokens from addr1 (0 tokens) to deployer
-      await expect(tx).to.revertedWith('BEP20: transfer amount exceeds balance');
+      await expect(tx).to.revertedWith('ERC20: transfer amount exceeds balance');
       // Deployer balance shouldn't have changed.
       expect(await meetcap.balanceOf(deployer.address)).to.equal(deployerBalance);
     });
@@ -86,7 +86,7 @@ describe('Meetcap token contract test', () => {
     it('Should revert when the owner is the zero address', async function () {
       const tx = meetcap.approve(zeroAddress, initialSupply);
 
-      await expect(tx).to.revertedWith('BEP20: approve to the zero address');
+      await expect(tx).to.revertedWith('ERC20: approve to the zero address');
     });
 
     it('Should approve allowance, emit the Approval event', async function () {
@@ -104,7 +104,7 @@ describe('Meetcap token contract test', () => {
     it('Should revert when the sender is the zero address', async function () {
       const tx = meetcap.increaseAllowance(zeroAddress, 100);
 
-      await expect(tx).revertedWith('BEP20: approve to the zero address');
+      await expect(tx).revertedWith('ERC20: approve to the zero address');
     });
 
     it('Should emit the Approval event, increase the spender allowance', async function () {
@@ -128,20 +128,20 @@ describe('Meetcap token contract test', () => {
     it('Should revert when the spender is the zero address', async function () {
       const tx = meetcap.decreaseAllowance(zeroAddress, 100);
 
-      await expect(tx).revertedWith('BEP20: decreased allowance below zero');
+      await expect(tx).revertedWith('ERC20: decreased allowance below zero');
     });
 
     it('Should revert when there was no approved amount before', async function () {
       const tx = meetcap.decreaseAllowance(addr1.address, 100);
 
-      await expect(tx).revertedWith('BEP20: decreased allowance below zero');
+      await expect(tx).revertedWith('ERC20: decreased allowance below zero');
     });
 
     it('Should revert when more than the full allowance is removed', async function () {
       await meetcap.approve(addr1.address, 100);
       const tx = meetcap.decreaseAllowance(addr1.address, 200);
 
-      await expect(tx).revertedWith('BEP20: decreased allowance below zero');
+      await expect(tx).revertedWith('ERC20: decreased allowance below zero');
     });
 
     it('Should emit the Approval event, decrease the spender allowance', async function () {
@@ -167,14 +167,14 @@ describe('Meetcap token contract test', () => {
       const burnAmount = BigNumber.from(deployerBalance).add(100);
       const tx = meetcap.burn(burnAmount);
 
-      await expect(tx).to.revertedWith('BEP20: burn amount exceeds balance');
+      await expect(tx).to.revertedWith('ERC20: burn amount exceeds balance');
     });
 
     it('Should revert when burnFrom amount exceeds allowance', async function () {
       await meetcap.approve(addr1.address, 100);
       const tx = meetcap.connect(addr1).burnFrom(deployer.address, 200);
 
-      await expect(tx).to.revertedWith('BEP20: insufficient allowance');
+      await expect(tx).to.revertedWith('ERC20: insufficient allowance');
     });
 
     const describeBurn = function (description: string, burnAmount: BigNumberish) {

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.9;
 
-import "./IBEP20.sol";
+import "./IERC20.sol";
 import "../Utilities/Context.sol";
 
 /**
@@ -15,7 +15,7 @@ import "../Utilities/Context.sol";
  * allowances. See {IERC20-approve}.
  */
 
-contract BEP20 is IBEP20, Context {
+contract ERC20 is IERC20, Context {
     mapping(address => uint256) private _balances;
     mapping(address => mapping(address => uint256)) private _allowances;
 
@@ -129,7 +129,7 @@ contract BEP20 is IBEP20, Context {
         uint256 currentAllowance = allowance(owner, spender);
         require(
             currentAllowance >= subtractedValue,
-            "BEP20: decreased allowance below zero"
+            "ERC20: decreased allowance below zero"
         );
         unchecked {
             _approve(owner, spender, currentAllowance - subtractedValue);
@@ -143,15 +143,15 @@ contract BEP20 is IBEP20, Context {
         address to,
         uint256 amount
     ) internal virtual {
-        require(from != address(0), "BEP20: transfer from the zero address");
-        require(to != address(0), "BEP20: transfer to the zero address");
+        require(from != address(0), "ERC20: transfer from the zero address");
+        require(to != address(0), "ERC20: transfer to the zero address");
 
         _beforeTokenTransfer(from, to, amount);
 
         uint256 fromBalance = _balances[from];
         require(
             fromBalance >= amount,
-            "BEP20: transfer amount exceeds balance"
+            "ERC20: transfer amount exceeds balance"
         );
         unchecked {
             _balances[from] = fromBalance - amount;
@@ -164,7 +164,7 @@ contract BEP20 is IBEP20, Context {
     }
 
     function _mint(address account, uint256 amount) internal virtual {
-        require(account != address(0), "BEP20: mint to the zero address");
+        require(account != address(0), "ERC20: mint to the zero address");
 
         _beforeTokenTransfer(address(0), account, amount);
 
@@ -176,12 +176,12 @@ contract BEP20 is IBEP20, Context {
     }
 
     function _burn(address account, uint256 amount) internal virtual {
-        require(account != address(0), "BEP20: burn from the zero address");
+        require(account != address(0), "ERC20: burn from the zero address");
 
         _beforeTokenTransfer(account, address(0), amount);
 
         uint256 accountBalance = _balances[account];
-        require(accountBalance >= amount, "BEP20: burn amount exceeds balance");
+        require(accountBalance >= amount, "ERC20: burn amount exceeds balance");
         unchecked {
             _balances[account] = accountBalance - amount;
         }
@@ -197,8 +197,8 @@ contract BEP20 is IBEP20, Context {
         address spender,
         uint256 amount
     ) internal virtual {
-        require(owner != address(0), "BEP20: approve from the zero address");
-        require(spender != address(0), "BEP20: approve to the zero address");
+        require(owner != address(0), "ERC20: approve from the zero address");
+        require(spender != address(0), "ERC20: approve to the zero address");
 
         _allowances[owner][spender] = amount;
         emit Approval(owner, spender, amount);
@@ -217,7 +217,7 @@ contract BEP20 is IBEP20, Context {
         if (currentAllowance != type(uint256).max) {
             require(
                 currentAllowance >= amount,
-                "BEP20: insufficient allowance"
+                "ERC20: insufficient allowance"
             );
             unchecked {
                 _approve(owner, spender, currentAllowance - amount);

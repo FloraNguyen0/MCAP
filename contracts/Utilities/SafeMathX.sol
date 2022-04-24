@@ -3,17 +3,16 @@ pragma solidity ^0.8.9;
 
 
 library SafeMathX {
-    // Calculate x * y / scale rounding down.
+    // Calculate x * y / 100 rounding down.
     function mulScale(
         uint256 x,
-        uint256 y,
-        uint128 scale
+        uint256 y
     ) internal pure returns (uint256) {
-        uint256 a = x / scale;
-        uint256 b = x % scale;
-        uint256 c = y / scale;
-        uint256 d = y % scale;
+        uint256 a = x / 100;
+        uint256 b = x % 100;
+        uint256 c = y / 100;
+        uint256 d = y % 100;
 
-        return a * c * scale + a * d + b * c + (b * d) / scale;
+        return a * c * 100 + a * d + b * c + (b * d) / 100;
     }
 }

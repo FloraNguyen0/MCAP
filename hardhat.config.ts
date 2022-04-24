@@ -5,6 +5,7 @@ import '@nomiclabs/hardhat-solhint';
 import '@typechain/hardhat';
 import '@nomiclabs/hardhat-ethers';
 import "@nomiclabs/hardhat-etherscan";
+import "hardhat-gas-reporter"
 
 
 // This is a sample Hardhat task.
@@ -34,6 +35,9 @@ module.exports = {
         runs: 200,
       },
     },
+  },
+  gasReporter: {
+    enabled: (process.env.REPORT_GAS) ? true : false
   },
   etherscan: {
     apiKey: process.env.POLYGONSCAN_API_KEY

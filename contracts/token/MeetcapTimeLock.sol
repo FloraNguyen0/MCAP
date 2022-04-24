@@ -3,7 +3,7 @@ pragma solidity ^0.8.9;
 
 import "../Utilities/Ownable.sol";
 import "../Utilities/SafeMathX.sol";
-import "../BEP20/IBEP20.sol";
+import "../ERC20/IERC20.sol";
 
 
 contract MeetcapTimeLock is Ownable {
@@ -13,13 +13,13 @@ contract MeetcapTimeLock is Ownable {
     address private _beneficiary;
 
     // Token address
-    IBEP20 private _token;
+    IERC20 private _token;
 
-    // Total amount of tokens had been locked initially
-    uint256 private _amount;
+    // Total amount of locked tokens
+    uint256 private _totalAllocation;
 
     // Total amount of tokens have been released
-    uint256 private _totalReleasedAmount;
+    uint256 private _releasedAmount;
 
     // Current release phase, starts from 0
     uint32 private _releaseId;
@@ -37,28 +37,24 @@ contract MeetcapTimeLock is Ownable {
     uint64 private _startDate;
 
     event Released(
-        uint256 releasedAmount,
-        uint256 _totalReleasedAmount,
-        uint32 toIdx,
-        uint64 date
+        uint256 releasableAmount,
+        uint32 toIdx
     );
-
-    event SafeSetupActivated(uint256 amount, address to, uint64 date);
 
     function beneficiary() public view virtual returns (address) {
         return _beneficiary;
     }
 
-    function token() public view virtual returns (IBEP20) {
+    function token() public view virtual returns (IERC20) {
         return _token;
     }
 
-    function amount() public view virtual returns (uint256) {
-        return _amount;
+    function totalAllocation() public view virtual returns (uint256) {
+        return _totalAllocation;
     }
 
-    function totalReleasedAmount() public view virtual returns (uint256) {
-        return _totalReleasedAmount;
+    function releasedAmount() public view virtual returns (uint256) {
+        return _releasedAmount;
     }
 
     function releaseId() public view virtual returns (uint32) {
@@ -89,9 +85,9 @@ contract MeetcapTimeLock is Ownable {
         returns (
             address owner_,
             address beneficiary_,
-            IBEP20 token_,
-            uint256 amount_,
-            uint256 totalReleasedAmount_,
+            IERC20 token_,
+            uint256 totalAllocation_,
+            uint256 releasedAmount_,
             uint32 releaseId_,
             uint32[] memory lockDurations_,
             uint32[] memory releasePercents_,
@@ -103,8 +99,8 @@ contract MeetcapTimeLock is Ownable {
             owner(), 
             beneficiary(),   
             token(),
-            amount(),
-            totalReleasedAmount(),
+            totalAllocation(),
+            releasedAmount(),
             releaseId(),
             lockDurations(),
             releasePercents(),
@@ -113,17 +109,16 @@ contract MeetcapTimeLock is Ownable {
         );
     }
 
-    /// Owner is the owner of all lockup contracts who could call safeSetup, not the deployer (see transferOwnership),
-    /// The ownership is renounced after the setup is done safely
+    /// Owner is the owner of all lockup contracts who could call safeSetup.
+    /// The ownership is renounced right after the setup is done safely.
     function initialize(
-        address owner_,
         address beneficiary_,
-        IBEP20 token_,
-        uint256 amount_,
+        IERC20 token_,
+        uint256 totalAllocation_,
         uint32[] calldata lockDurations_,
         uint32[] calldata releasePercents_,
         uint64 startDate_
-    ) public virtual returns (bool) {     
+    ) public virtual onlyOwner returns (bool) {     
         require(
             lockDurations_.length == releasePercents_.length,
             "Unlock length does not match"
@@ -150,13 +145,8 @@ contract MeetcapTimeLock is Ownable {
         );
 
         require(
-            owner_ != address(0),
-            "Owner address cannot be the zero address"
-        );
-
-        require(
-            amount_ > 0, 
-            "The amount must be greater than zero"
+            totalAllocation_ > 0, 
+            "The total allocation must be greater than zero"
         );
 
         _beneficiary = beneficiary_;
@@ -164,12 +154,10 @@ contract MeetcapTimeLock is Ownable {
         _startDate = startDate_;
         _lockDurations = lockDurations_;
         _releasePercents = releasePercents_;
-        _amount = amount_;
-        _totalReleasedAmount = 0;
+        _totalAllocation = totalAllocation_;
+        _releasedAmount = 0;
         _releaseId = 0;
         _releaseDates = new uint64[](_lockDurations.length);
-
-        transferOwnership(owner_);
 
         return true;
     }
@@ -177,8 +165,7 @@ contract MeetcapTimeLock is Ownable {
     /// @notice Release unlocked tokens to user.
     /// @dev User (sender) can release unlocked tokens by calling this function.
     /// This function will release locked tokens from multiple lock phases that meets unlock requirements
-   
-    function release() public virtual returns (bool) {
+       function release() public virtual returns (bool) {
         uint256 phases = _lockDurations.length;
 
         require(
@@ -188,41 +175,36 @@ contract MeetcapTimeLock is Ownable {
         require(
             block.timestamp >=
                 _startDate + _lockDurations[_releaseId] * 1 seconds,
-            "Next phase is unavailable"
+            "Current time is before release time"
         );
 
         uint256 preReleaseId = _releaseId;
 
-        uint256 releasedAmount;
+        uint256 releasableAmount;
         while (
             _releaseId < phases &&
             block.timestamp >=
             _startDate + _lockDurations[_releaseId] * 1 seconds
         ) {
             uint256 stepReleaseAmount;
+
             if (_releaseId == phases - 1) {
                 stepReleaseAmount =
-                    _amount -
-                    _totalReleasedAmount -
-                    releasedAmount;
+                    _totalAllocation -
+                    _releasedAmount -
+                    releasableAmount;
             } else {
-                stepReleaseAmount = _amount.mulScale(
-                    _releasePercents[_releaseId],
-                    100
+                stepReleaseAmount = _totalAllocation.mulScale(
+                    _releasePercents[_releaseId]
                 );
             }
 
-            releasedAmount += stepReleaseAmount;
+            releasableAmount += stepReleaseAmount;
             _releaseId++;
         }
 
-        uint256 balance = _token.balanceOf(address(this));
-        require(
-            balance >= releasedAmount,
-            "Insufficient balance"
-        );
-        _totalReleasedAmount += releasedAmount;
-        _token.transfer(_beneficiary, releasedAmount);
+        _releasedAmount += releasableAmount;
+        _token.transfer(_beneficiary, releasableAmount);
 
         uint64 releaseDate = uint64(block.timestamp);
 
@@ -231,10 +213,8 @@ contract MeetcapTimeLock is Ownable {
         }
 
         emit Released(
-            releasedAmount,
-            _totalReleasedAmount,
-            _releaseId,
-            releaseDate
+            releasableAmount,
+            _releaseId
         );
 
         return true;
@@ -243,13 +223,11 @@ contract MeetcapTimeLock is Ownable {
     /// @dev This is for safety.
     /// For example, when someone setup the contract with wrong data and accidentally transfer token to the lockup contract.
     /// The owner can get the token back by calling this function.
-    /// The ownership is renounced after the setup is done safely.
+    /// The ownership is renounced right after the setup is done safely.
 
     function safeSetup() public virtual onlyOwner returns (bool) {
         uint256 balance = _token.balanceOf(address(this));
         _token.transfer(owner(), balance);
-
-        emit SafeSetupActivated(balance, owner(), uint64(block.timestamp));
 
         return true;
     }

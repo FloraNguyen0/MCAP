@@ -16,32 +16,31 @@ const { expect } = chai;
 describe('MeetcapPresale', () => {
     let meetcap: Meetcap;
     let meetcapPresale: MeetcapPresale;
-    let meetcapDeployer: SignerWithAddress;
-    let admin: SignerWithAddress;
+    let deployer: SignerWithAddress;
     let addr1: SignerWithAddress;
     let addr2: SignerWithAddress;
 
     const zeroAddress = ethers.constants.AddressZero;
-    // Token price is 0.001 Bnb per token
-    const rate = 1000;
+    // 1500 token units a buyer gets per wei.
+    // Token price is 1/1500 Matic per token
+    const rate = 1500;
     // Presale Amount is 300m tokens
     const presaleAmount = parseEther('300000000');
 
     beforeEach(async () => {
-        [admin, meetcapDeployer, addr1, addr2] = await ethers.getSigners();
-        meetcap = (await deployContract(meetcapDeployer, MeetcapArtifact)) as Meetcap
+        [deployer, addr1, addr2] = await ethers.getSigners();
+        meetcap = (await deployContract(deployer, MeetcapArtifact)) as Meetcap
         meetcapPresale = (await deployContract(
-            admin, MeetcapPresaleArtifact,
-            [rate, admin.address, meetcap.address])) as MeetcapPresale;
+            deployer, MeetcapPresaleArtifact,
+            [rate, meetcap.address])) as MeetcapPresale;
 
-        await meetcap.connect(meetcapDeployer).transfer(meetcapPresale.address, presaleAmount);
+        await meetcap.connect(deployer).transfer(meetcapPresale.address, presaleAmount);
     })
 
     it('Test meetcapPresale metadata', async function () {
         expect(await meetcapPresale.rate()).equal(rate);
-        expect(await meetcapPresale.adminAddress()).equal(admin.address);
         expect(await meetcapPresale.token()).equal(meetcap.address);
-        expect(await meetcapPresale.owner()).equal(admin.address);
+        expect(await meetcapPresale.owner()).equal(deployer.address);
         expect(await meetcap.balanceOf(meetcapPresale.address)).equal(presaleAmount);
     })
 
@@ -146,7 +145,7 @@ describe('MeetcapPresale', () => {
             await expect(tx).revertedWith('Insufficient balance');
         });
 
-        it('Should revert when not called by the admin', async function () {
+        it('Should revert when not called by the owner', async function () {
             await meetcapPresale.connect(addr1).buyTokens(
                 addr1.address, { value: parseEther('10') });
 
@@ -155,7 +154,7 @@ describe('MeetcapPresale', () => {
         });
 
         it('Should forward funds correctly', async function () {
-            const adminBalance = await admin.getBalance();
+            const ownerBalance = await deployer.getBalance();
             await meetcapPresale.connect(addr1).buyTokens(
                 addr1.address, { value: parseEther('10') });
 
@@ -164,7 +163,7 @@ describe('MeetcapPresale', () => {
             const gasFee = BigNumber.from(receipt.gasUsed).mul(receipt.effectiveGasPrice);
 
             expect(await ethers.provider.getBalance(meetcapPresale.address)).equal(parseEther('5'));
-            expect(await admin.getBalance()).equal(adminBalance.add(parseEther('5')).sub(gasFee));
+            expect(await deployer.getBalance()).equal(ownerBalance.add(parseEther('5')).sub(gasFee));
         });
     });
 
@@ -179,25 +178,25 @@ describe('MeetcapPresale', () => {
                 await expect(tx).revertedWith('Token amount exceeds the presale balance.');
             });
 
-        it('Should revert when not called by the admin', async function () {
+        it('Should revert when not called by the owner', async function () {
             const tx = meetcapPresale.connect(addr1).endPresale();
 
             await expect(tx).revertedWith('Ownable: caller is not the owner');
         });
 
         it('End presale when there is no users buying yet', async function () {
-            const adminBalance = await admin.getBalance();
+            const ownerBalance = await deployer.getBalance();
 
             const tx = await meetcapPresale.endPresale();
             const receipt = await tx.wait();
             const gasFee = BigNumber.from(receipt.gasUsed).mul(receipt.effectiveGasPrice);
 
-            expect((await admin.getBalance())).equal(adminBalance.sub(gasFee));
-            expect(await meetcap.balanceOf(admin.address)).equal(presaleAmount);
+            expect((await deployer.getBalance())).equal(ownerBalance.sub(gasFee));
+            expect(await meetcap.balanceOf(deployer.address)).equal(presaleAmount);
         })
 
         it('Should end the presale correctly', async function () {
-            const adminBalance = await admin.getBalance();
+            const ownerBalance = await deployer.getBalance();
             const investmentAmount = parseEther('10');
 
             await meetcapPresale.connect(addr1).buyTokens(
@@ -207,9 +206,9 @@ describe('MeetcapPresale', () => {
             const receipt = await tx.wait();
             const gasFee = BigNumber.from(receipt.gasUsed).mul(receipt.effectiveGasPrice);
 
-            expect((await admin.getBalance()))
-                .equal(adminBalance.add(investmentAmount).sub(gasFee));
-            expect(await meetcap.balanceOf(admin.address))
+            expect((await deployer.getBalance()))
+                .equal(ownerBalance.add(investmentAmount).sub(gasFee));
+            expect(await meetcap.balanceOf(deployer.address))
                 .equal(presaleAmount.sub(investmentAmount.mul(rate)));
         });
     });

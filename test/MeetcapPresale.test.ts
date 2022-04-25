@@ -46,7 +46,7 @@ describe('MeetcapPresale', () => {
 
 
     describe('Test buyTokens() function', function () {
-        describe('Test _validatePurchase() function', function () {
+        describe('Test _preValidatePurchase() function', function () {
             it('Should revert when the beneficiary address is the zero address',
                 async function () {
                     const tx = meetcapPresale.connect(addr1).buyTokens(

@@ -64,7 +64,7 @@ contract MeetcapPresale is Context, ReentrancyCheck, Ownable {
         uint256 weiSent = msg.value;
         uint256 tokensBought = weiSent * _rate;
 
-        _validatePurchase(beneficiary, weiSent, tokensBought);
+        _preValidatePurchase(beneficiary, weiSent, tokensBought);
 
         _weiRaised = _weiRaised + weiSent;
 
@@ -102,7 +102,7 @@ contract MeetcapPresale is Context, ReentrancyCheck, Ownable {
         return true;
     }
 
-    function _validatePurchase(
+    function _preValidatePurchase(
         address beneficiary, 
         uint256 weiSent, 
         uint256 tokensBought

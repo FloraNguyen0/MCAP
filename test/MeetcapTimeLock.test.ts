@@ -23,7 +23,6 @@ describe.only('MeetcapTimeLock', function () {
   const zeroAddress = ethers.constants.AddressZero;
 
   beforeEach(async function () {
-    // await deployments.fixture(['token-time-lock', 'meetcap']);
     [deployer, beneficiary, owner] = await ethers.getSigners();
     meetcap = (await deployContract(deployer, MeetcapArtifact)) as Meetcap
   });
@@ -139,8 +138,7 @@ describe.only('MeetcapTimeLock', function () {
     });
 
 
-    describe('New lock should be stored correctly', async function () {
-      const now = await EthUtils.latestBlockTimestamp();
+    describe('New lock should be stored correctly', function () {
       beforeEach(async function () {
         const args = [
           beneficiary.address,
@@ -154,7 +152,7 @@ describe.only('MeetcapTimeLock', function () {
             daysToSeconds(5),
           ],
           [20, 20, 20, 20, 20],
-          now
+          await EthUtils.latestBlockTimestamp()
         ];
 
         meetcapTimeLock = (await deployContract(
@@ -201,7 +199,8 @@ describe.only('MeetcapTimeLock', function () {
       });
 
       it('Should store the correct start date', async function () {
-        expect(await meetcapTimeLock.startDate()).to.equal(now);
+        expect(await meetcapTimeLock.startTime()).to.equal(
+          await EthUtils.latestBlockTimestamp());
       });
     })
   });
@@ -319,7 +318,7 @@ describe.only('MeetcapTimeLock', function () {
           beneficiary.address,
           meetcap.address,
           BigNumber.from(100_000_000).mul(
-            BigNumber.from(10).pow(BigNumber.from(await meetcap.decimals()))
+            BigNumber.from(10).pow(BigNumber.from(18))
           ),
           [
             daysToSeconds(1),

@@ -1,18 +1,26 @@
 {   
     "compilerOptions": {
-        "target": "es2018",
-        "module": "commonjs",
-        "strict": true,
-        "esModuleInterop": true,
-        "outDir": "dist",
-        "resolveJsonModule": true,
+            "lib": ["es2020"],
+    "preserveConstEnums": true,
+    "moduleResolution": "node",
+    "sourceMap": true,
+    "target": "es2022",
+    "types": ["node"],
+    "module": "commonjs",
+    // "module": "es2022",
+    "strict": true,
+    "esModuleInterop": true,
+    "outDir": "dist",
+    "resolveJsonModule": true,
     },
     "include": [
         "./scripts",
         "./test",
-        "./typechain-types"
+        "./typechain-types",
+        "./contract_arguments"
     ],
     "files": [
         "./hardhat.config.ts"
     ]
 }
+

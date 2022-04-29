@@ -24,6 +24,9 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
 /**
  * @type import('hardhat/config').HardhatUserConfig
  */
+
+// Using hardhat network only for testing,
+// change to matic_testnet when deploying.
 module.exports = {
   defaultNetwork: "hardhat",
   solidity: {
@@ -41,6 +44,7 @@ module.exports = {
   },
   etherscan: {
     apiKey: process.env.POLYGONSCAN_API_KEY
+    // process.env.BSC_API_KEY
   },
   networks: {
     localhost: {
@@ -56,6 +60,8 @@ module.exports = {
       url: 'https://rpc-mumbai.maticvigil.com/',
       chainId: 80001,
       accounts: [process.env.DEPLOYER_PRIVATE_KEY],
+      gas: 2100000,
+      gasPrice: 8000000000
       // live: true,
     },
     matic_mainnet: {
@@ -101,6 +107,3 @@ module.exports = {
     artifacts: "./artifacts"
   },
 };
-
-
-// npx hardhat verify --network matic deployed contract

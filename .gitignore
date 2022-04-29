@@ -3,7 +3,7 @@ node_modules
 coverage
 coverage.json
 typechain-types
-arguments.js
+dist
 
 #Hardhat files
 cache

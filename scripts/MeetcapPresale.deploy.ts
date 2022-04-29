@@ -3,13 +3,12 @@ import 'dotenv/config'
 
 
 async function main() {
-    const meetcapAddress = '0x0681FAF2048B3476c3dDa8Cce284F226Bf700F2B';
     const [deployer] = await ethers.getSigners();
 
     // Deploy MeetcapPresale
     const MeetcapPresale = await hre.ethers.getContractFactory('MeetcapPresale');
     // Change to the real meetcap address when deploying to mainnet
-    const meetcapPresale = await MeetcapPresale.deploy(1500, meetcapAddress);
+    const meetcapPresale = await MeetcapPresale.deploy(1500, process.env.MEETCAP_ADDRESS as string);
     await meetcapPresale.deployed();
 
     // Deployment data

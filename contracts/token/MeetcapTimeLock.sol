@@ -34,7 +34,7 @@ contract MeetcapTimeLock is Ownable {
     uint64[] private _releaseDates;
 
     // Start date of the lockup period
-    uint64 private immutable _startDate;
+    uint64 private immutable _startTime;
 
     event Released(
         uint256 releasableAmount,
@@ -47,7 +47,7 @@ contract MeetcapTimeLock is Ownable {
         uint256 totalAllocation_,
         uint32[] memory lockDurations_,
         uint32[] memory releasePercents_,
-        uint64 startDate_
+        uint64 startTime_
     ) {
         require(
             lockDurations_.length == releasePercents_.length,
@@ -81,7 +81,7 @@ contract MeetcapTimeLock is Ownable {
 
         _beneficiary = beneficiary_;
         _token = token_;
-        _startDate = startDate_;
+        _startTime = startTime_;
         _lockDurations = lockDurations_;
         _releasePercents = releasePercents_;
         _totalAllocation = totalAllocation_;
@@ -122,8 +122,8 @@ contract MeetcapTimeLock is Ownable {
         return _releaseDates;
     }
 
-    function startDate() public view virtual returns (uint64) {
-        return _startDate;
+    function startTime() public view virtual returns (uint64) {
+        return _startTime;
     }
 
     /// @notice Release unlocked tokens to user.
@@ -171,7 +171,7 @@ contract MeetcapTimeLock is Ownable {
         );
         require(
             block.timestamp >=
-                _startDate + _lockDurations[_releaseId] * 1 seconds,
+                _startTime + _lockDurations[_releaseId] * 1 seconds,
             "Current time is before release time"
         );
     }
@@ -180,7 +180,7 @@ contract MeetcapTimeLock is Ownable {
         uint256 releasableAmount;      
         while (
             _releaseId < phases && block.timestamp >=
-            _startDate + _lockDurations[_releaseId] * 1 seconds
+            _startTime + _lockDurations[_releaseId] * 1 seconds
         ) {
             uint256 stepReleaseAmount;
             if (_releaseId == phases - 1) {

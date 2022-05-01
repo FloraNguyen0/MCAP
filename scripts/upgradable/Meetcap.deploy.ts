@@ -1,11 +1,12 @@
-import hre, { ethers } from 'hardhat';
+import hre, { ethers, upgrades, } from 'hardhat';
 
 
 async function main() {
     const [deployer] = await ethers.getSigners();
     // Deploy Meetcap
     const Meetcap = await hre.ethers.getContractFactory('Meetcap');
-    const meetcap = await Meetcap.deploy();
+    const meetcap = await upgrades.deployProxy(Meetcap, [], { initializer: "initialize" });
+
     await meetcap.deployed();
 
     // Deployment data

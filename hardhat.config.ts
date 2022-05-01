@@ -6,6 +6,7 @@ import '@typechain/hardhat';
 import '@nomiclabs/hardhat-ethers';
 import "@nomiclabs/hardhat-etherscan";
 import "hardhat-gas-reporter"
+import '@openzeppelin/hardhat-upgrades'
 
 
 // This is a sample Hardhat task.

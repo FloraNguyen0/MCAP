@@ -1,8 +1,7 @@
-import { ethers, waffle } from 'hardhat';
+import hre, { ethers, upgrades, waffle } from 'hardhat';
 import chai from 'chai';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
-import MeetcapArtifact from '../artifacts/contracts/token/Meetcap.sol/Meetcap.json';
-import MeetcapPresaleArtifact from '../artifacts/contracts/token/MeetcapPresale.sol/MeetcapPresale.json';
+import MeetcapPresaleArtifact from '../artifacts/contracts/contracts-nonupgradable/meetcap/MeetcapPresale.sol/MeetcapPresale.json';
 import { Meetcap } from '../typechain-types/Meetcap';
 import { MeetcapPresale } from '../typechain-types/MeetcapPresale';
 import { parseEther } from '@ethersproject/units';
@@ -29,12 +28,16 @@ describe('MeetcapPresale', () => {
 
     beforeEach(async () => {
         [deployer, addr1, addr2] = await ethers.getSigners();
-        meetcap = (await deployContract(deployer, MeetcapArtifact)) as Meetcap
+        const Meetcap = await hre.ethers.getContractFactory('Meetcap');
+        meetcap = (await upgrades.deployProxy(Meetcap, [], { initializer: "initialize" })) as Meetcap;
+
+        await meetcap.deployed();
+
         meetcapPresale = (await deployContract(
             deployer, MeetcapPresaleArtifact,
             [rate, meetcap.address])) as MeetcapPresale;
 
-        await meetcap.connect(deployer).transfer(meetcapPresale.address, presaleAmount);
+        await meetcap.transfer(meetcapPresale.address, presaleAmount);
     })
 
     it('Test meetcapPresale metadata', async function () {
@@ -184,19 +187,21 @@ describe('MeetcapPresale', () => {
             await expect(tx).revertedWith('Ownable: caller is not the owner');
         });
 
-        it('End presale when there is no users buying yet', async function () {
+        it('End presale before there is any users buying', async function () {
             const ownerBalance = await deployer.getBalance();
+            const ownerTokens = await meetcap.balanceOf(deployer.address);
 
             const tx = await meetcapPresale.endPresale();
             const receipt = await tx.wait();
             const gasFee = BigNumber.from(receipt.gasUsed).mul(receipt.effectiveGasPrice);
 
             expect((await deployer.getBalance())).equal(ownerBalance.sub(gasFee));
-            expect(await meetcap.balanceOf(deployer.address)).equal(presaleAmount);
+            expect(await meetcap.balanceOf(deployer.address)).equal(ownerTokens.add(presaleAmount));
         })
 
         it('Should end the presale correctly', async function () {
             const ownerBalance = await deployer.getBalance();
+            const ownerTokens = await meetcap.balanceOf(deployer.address);
             const investmentAmount = parseEther('10');
 
             await meetcapPresale.connect(addr1).buyTokens(
@@ -209,7 +214,7 @@ describe('MeetcapPresale', () => {
             expect((await deployer.getBalance()))
                 .equal(ownerBalance.add(investmentAmount).sub(gasFee));
             expect(await meetcap.balanceOf(deployer.address))
-                .equal(presaleAmount.sub(investmentAmount.mul(rate)));
+                .equal(ownerTokens.add(presaleAmount.sub(investmentAmount.mul(rate))));
         });
     });
 })

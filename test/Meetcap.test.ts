@@ -1,12 +1,10 @@
-import { ethers, waffle } from 'hardhat';
+import hre, { ethers, upgrades, waffle } from 'hardhat';
 import chai from 'chai';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 
-import MeetcapArtifact from '../artifacts/contracts/token/Meetcap.sol/Meetcap.json';
 import { Meetcap } from '../typechain-types/Meetcap';
 import { BigNumberish } from '@ethersproject/bignumber';
 
-const { deployContract } = waffle;
 const { BigNumber } = ethers;
 const { expect } = chai;
 
@@ -24,7 +22,11 @@ describe('Meetcap token contract test', () => {
   beforeEach(async () => {
     [deployer, addr1, addr2] = await ethers.getSigners();
     // deploy Meetcap contract
-    meetcap = (await deployContract(deployer, MeetcapArtifact)) as Meetcap;
+    const Meetcap = await hre.ethers.getContractFactory('Meetcap');
+    meetcap = (await upgrades.deployProxy(Meetcap, [], { initializer: "initialize" })) as Meetcap;
+
+    await meetcap.deployed();
+
   });
 
   it('Test Meetcap metadata', async function () {

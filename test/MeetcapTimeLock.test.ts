@@ -1,19 +1,18 @@
-import { ethers, waffle } from 'hardhat';
+import hre, { ethers, upgrades, waffle } from 'hardhat';
 import chai from 'chai';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 
 import { EthUtils, daysToSeconds } from '../utils/EthUtils';
 import { Meetcap } from '../typechain-types/Meetcap';
 import { MeetcapTimeLock } from '../typechain-types/MeetcapTimeLock'
-import MeetcapArtifact from '../artifacts/contracts/token/Meetcap.sol/Meetcap.json';
-import MeetcapTimeLockArtifact from '../artifacts/contracts/token/MeetcapTimeLock.sol/MeetcapTimeLock.json';
+import MeetcapTimeLockArtifact from '../artifacts/contracts/contracts-nonupgradable/meetcap/MeetcapTimeLock.sol/MeetcapTimeLock.json';
 
 const { deployContract } = waffle;
 const { BigNumber } = ethers;
 const { expect } = chai;
 
 
-describe.only('MeetcapTimeLock', function () {
+describe('MeetcapTimeLock', function () {
   let meetcap: Meetcap;
   let meetcapTimeLock: MeetcapTimeLock;
   let deployer: SignerWithAddress;
@@ -24,7 +23,10 @@ describe.only('MeetcapTimeLock', function () {
 
   beforeEach(async function () {
     [deployer, beneficiary, owner] = await ethers.getSigners();
-    meetcap = (await deployContract(deployer, MeetcapArtifact)) as Meetcap
+    const Meetcap = await hre.ethers.getContractFactory('Meetcap');
+    meetcap = (await upgrades.deployProxy(Meetcap, [], { initializer: "initialize" })) as Meetcap;
+
+    await meetcap.deployed();
   });
 
 

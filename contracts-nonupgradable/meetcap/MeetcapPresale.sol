@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.9;
 
-import "./Meetcap.sol";
-import "../ERC20/IERC20.sol";
-import "../Utilities/Context.sol";
-import "../Utilities/ReentrancyCheck.sol";
-import "../Utilities/Ownable.sol";
+import "../../contracts-upgradable/meetcap/Meetcap.sol";
+import "../../contracts-upgradable/token/ERC20/IERC20Upgradeable.sol";
+import "../utils/Context.sol";
+import "../security/ReentrancyGuard.sol";
+import "../access/Ownable.sol";
 
 
-contract MeetcapPresale is Context, ReentrancyCheck, Ownable {
+contract MeetcapPresale is Context, ReentrancyGuard, Ownable {
     // How many token units a buyer gets per wei.
     // The rate is the conversion between wei and the smallest and indivisible token unit.
     uint256 private _rate;
@@ -17,7 +17,7 @@ contract MeetcapPresale is Context, ReentrancyCheck, Ownable {
     uint256 private _weiRaised;
 
     /// The token being sold
-    IERC20 private _token;
+    IERC20Upgradeable private _token;
 
     event TokensPurchased(
         address indexed purchaser,
@@ -26,9 +26,9 @@ contract MeetcapPresale is Context, ReentrancyCheck, Ownable {
         uint256 tokensBought
     );
 
-    constructor(uint256 rate_, IERC20 token_) {
+    constructor(uint256 rate_, IERC20Upgradeable token_) {
         require(rate_ > 0, "The token rate cannot be 0");
-       
+        
         require(
             address(token_) != address(0), 
             "Token address cannot be the zero address"
@@ -50,7 +50,7 @@ contract MeetcapPresale is Context, ReentrancyCheck, Ownable {
         return _weiRaised;
     }
 
-    function token() public view virtual returns (IERC20) {
+    function token() public view virtual returns (IERC20Upgradeable) {
         return _token;
     } 
     

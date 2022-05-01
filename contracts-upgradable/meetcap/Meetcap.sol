@@ -4,10 +4,16 @@ pragma solidity ^0.8.9;
 import "../token/ERC20/ERC20Upgradeable.sol";
 import "../token/ERC20/extensions/ERC20BurnableUpgradeable.sol";
 import "../proxy/utils/Initializable.sol";
-import " ../access/OwnableUpgradeable.sol";
+import "../access/OwnableUpgradeable.sol";
 import "../proxy/utils/UUPSUpgradeable.sol";
 
-contract Meetcap is Initializable, ERC20Upgradeable, ERC20BurnableUpgradeable, OwnableUpgradeable, UUPSUpgradeable {
+
+contract Meetcap is Initializable,
+    ERC20Upgradeable, 
+    ERC20BurnableUpgradeable, 
+    OwnableUpgradeable, 
+    UUPSUpgradeable 
+{
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() initializer {}
 

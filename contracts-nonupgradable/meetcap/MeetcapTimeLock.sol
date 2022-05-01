@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.9;
 
-import "../Utilities/Ownable.sol";
+import "../access/Ownable.sol";
 import "../utils/SafeMathMC.sol";
-import "../ERC20/IERC20.sol";
+import "../../contracts-upgradable/token/ERC20/IERC20Upgradeable.sol";
 
 
 contract MeetcapTimeLock is Ownable {
@@ -13,7 +13,7 @@ contract MeetcapTimeLock is Ownable {
     address private immutable _beneficiary;
 
     // Token address
-    IERC20 private immutable _token;
+    IERC20Upgradeable private immutable _token;
 
     // Total amount of locked tokens
     uint256 private immutable _totalAllocation;
@@ -43,7 +43,7 @@ contract MeetcapTimeLock is Ownable {
 
     constructor(
         address beneficiary_,
-        IERC20 token_,
+        IERC20Upgradeable token_,
         uint256 totalAllocation_,
         uint32[] memory lockDurations_,
         uint32[] memory releasePercents_,
@@ -94,7 +94,7 @@ contract MeetcapTimeLock is Ownable {
         return _beneficiary;
     }
 
-    function token() public view virtual returns (IERC20) {
+    function token() public view virtual returns (IERC20Upgradeable) {
         return _token;
     }
 
@@ -198,4 +198,3 @@ contract MeetcapTimeLock is Ownable {
     }
 
 }
-

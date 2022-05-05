@@ -1,4 +1,4 @@
-import { daysToSeconds, } from '../../utils/EthUtils';
+import { daysToSeconds, } from '../../../utils/EthUtils';
 import 'dotenv/config'
 import { BigNumber } from 'ethers';
 
@@ -16,5 +16,5 @@ module.exports = [
     communityAllocation,
     communityLockDurations,
     communityReleasePercents,
-    1651230709
+    1651479346
 ]

@@ -8,6 +8,8 @@ import "@nomiclabs/hardhat-etherscan";
 import "hardhat-gas-reporter"
 import '@openzeppelin/hardhat-upgrades'
 
+// The configuration file is always executed on startup,
+// before anything else happens
 
 // This is a sample Hardhat task.
 task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
@@ -44,8 +46,15 @@ module.exports = {
     enabled: (process.env.REPORT_GAS) ? true : false
   },
   etherscan: {
-    apiKey: process.env.POLYGONSCAN_API_KEY
+    apiKey:
+      process.env.POLYGONSCAN_API_KEY
     // process.env.BSC_API_KEY
+  },
+  paths: {
+    sources: "./contracts",
+    tests: "./test",
+    cache: "./cache",
+    artifacts: "./artifacts"
   },
   networks: {
     localhost: {
@@ -101,10 +110,5 @@ module.exports = {
       chainId: 4,
     },
   },
-  paths: {
-    sources: "./contracts",
-    tests: "./test",
-    cache: "./cache",
-    artifacts: "./artifacts"
-  },
+
 };

@@ -1,9 +1,9 @@
 import hre, { ethers, upgrades, waffle } from 'hardhat';
 import chai from 'chai';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
-import MeetcapPresaleArtifact from '../artifacts/contracts/contracts-nonupgradable/meetcap/MeetcapPresale.sol/MeetcapPresale.json';
-import { Meetcap } from '../typechain-types/Meetcap';
-import { MeetcapPresale } from '../typechain-types/MeetcapPresale';
+import MeetcapPresaleArtifact from '../../artifacts/contracts/contracts-nonupgradable/meetcap/MeetcapPresale.sol/MeetcapPresale.json';
+import { Meetcap } from '../../typechain-types/Meetcap';
+import { MeetcapPresale } from '../../typechain-types/MeetcapPresale';
 import { parseEther } from '@ethersproject/units';
 import { ContractTransaction } from '@ethersproject/contracts';
 

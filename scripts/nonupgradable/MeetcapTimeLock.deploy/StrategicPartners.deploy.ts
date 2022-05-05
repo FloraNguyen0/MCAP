@@ -1,6 +1,6 @@
 import { BigNumber } from 'ethers';
 import hre, { ethers } from 'hardhat';
-import { daysToSeconds, EthUtils } from '../../utils/EthUtils';
+import { daysToSeconds, EthUtils } from '../../../utils/EthUtils';
 
 
 async function main() {
@@ -14,9 +14,9 @@ async function main() {
     const strategicPartnersReleasePercents = [0].
         concat(Array(5).fill(5)).concat(Array(25).fill(3));
 
-    // Deploy MeetcapTimeLock
-    const MeetcapTimeLock = await hre.ethers.getContractFactory('MeetcapTimeLock');
-    const meetcapTimeLock = await MeetcapTimeLock.deploy(
+    // Deploy StrategicPartnersTimeLock
+    const StrategicPartnersTimeLock = await hre.ethers.getContractFactory('StrategicPartnersTimeLock');
+    const strategicPartnersTimeLock = await StrategicPartnersTimeLock.deploy(
         process.env.STRATEGIC_PARTNERS_ADDRESS as string,
         process.env.MEETCAP_ADDRESS as string,
         strategicPartnersAllocation,
@@ -24,13 +24,16 @@ async function main() {
         strategicPartnersReleasePercents,
         now
     );
-    await meetcapTimeLock.deployed();
+    await strategicPartnersTimeLock.deployed();
 
+    // transfer tokens from the deployer to TimeLock
+    const meetcap = await hre.ethers.getContractAt('Meetcap', process.env.MEETCAP_ADDRESS as string)
+    await meetcap.transfer(strategicPartnersTimeLock.address, strategicPartnersAllocation);
 
     // Deployment data
     const networkName = hre.network.name;
     console.log('Deploying to the network:', networkName);
-    console.log('Meetcap timelock deployed to the address:', meetcapTimeLock.address);
+    console.log('Strategic partners timelock deployed to the address:', strategicPartnersTimeLock.address);
     console.log("Deploying contracts by the account:", deployer.address);
     console.log('Strategic partners start time:', now);
 }

@@ -2,7 +2,7 @@ import hre, { ethers, upgrades, waffle } from 'hardhat';
 import chai from 'chai';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 
-import { Meetcap } from '../typechain-types/Meetcap';
+import { Meetcap } from '../../typechain-types/Meetcap';
 import { BigNumberish } from '@ethersproject/bignumber';
 
 const { BigNumber } = ethers;

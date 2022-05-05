@@ -11,6 +11,10 @@ async function main() {
     const meetcapPresale = await MeetcapPresale.deploy(1500, process.env.MEETCAP_ADDRESS as string);
     await meetcapPresale.deployed();
 
+    // transfer tokens from the deployer to Meetcap Presale
+    const meetcap = await hre.ethers.getContractAt('Meetcap', process.env.MEETCAP_ADDRESS as string)
+    await meetcap.transfer(meetcapPresale.address, (await meetcap.totalSupply()).div(100).mul(3));
+
     // Deployment data
     const networkName = hre.network.name;
     console.log('Deploying to the network:', networkName);

@@ -4,6 +4,8 @@ pragma solidity ^0.8.9;
 
 library SafeMathX {
     // Calculate x * y / 100 rounding down.
+    // x == totalAllocation, y == releasePercents[_releaseId]
+    // return stepReleaseAmount
     function mulScale(
         uint256 x,
         uint256 y

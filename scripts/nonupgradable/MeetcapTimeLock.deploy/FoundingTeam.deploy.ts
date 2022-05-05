@@ -1,6 +1,6 @@
 import { BigNumber } from 'ethers';
 import hre, { ethers } from 'hardhat';
-import { daysToSeconds, EthUtils } from '../../utils/EthUtils';
+import { daysToSeconds, EthUtils } from '../../../utils/EthUtils';
 
 
 async function main() {
@@ -14,9 +14,9 @@ async function main() {
     const foundingTeamReleasePercents = [0].
         concat(Array(5).fill(5)).concat(Array(25).fill(3));
 
-    // Deploy MeetcapTimeLock
-    const MeetcapTimeLock = await hre.ethers.getContractFactory('MeetcapTimeLock');
-    const meetcapTimeLock = await MeetcapTimeLock.deploy(
+    // Deploy FoundingTeamTimeLock
+    const FoundingTeamTimeLock = await hre.ethers.getContractFactory('FoundingTeamTimeLock');
+    const foundingTeamTimeLock = await FoundingTeamTimeLock.deploy(
         process.env.FOUNDING_TEAM_ADDRESS as string,
         process.env.MEETCAP_ADDRESS as string,
         foundingTeamAllocation,
@@ -24,13 +24,16 @@ async function main() {
         foundingTeamReleasePercents,
         now
     );
-    await meetcapTimeLock.deployed();
+    await foundingTeamTimeLock.deployed();
 
+    // transfer tokens from the deployer to TimeLock
+    const meetcap = await hre.ethers.getContractAt('Meetcap', process.env.MEETCAP_ADDRESS as string)
+    await meetcap.transfer(foundingTeamTimeLock.address, foundingTeamAllocation);
 
     // Deployment data
     const networkName = hre.network.name;
     console.log('Deploying to the network:', networkName);
-    console.log('Meetcap timelock deployed to the address:', meetcapTimeLock.address);
+    console.log('Founding team timelock deployed to the address:', foundingTeamTimeLock.address);
     console.log("Deploying contracts by the account:", deployer.address);
     console.log('Founding team start time:', now);
 }

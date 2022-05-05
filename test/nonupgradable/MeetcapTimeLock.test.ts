@@ -2,10 +2,10 @@ import hre, { ethers, upgrades, waffle } from 'hardhat';
 import chai from 'chai';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 
-import { EthUtils, daysToSeconds } from '../utils/EthUtils';
-import { Meetcap } from '../typechain-types/Meetcap';
-import { MeetcapTimeLock } from '../typechain-types/MeetcapTimeLock'
-import MeetcapTimeLockArtifact from '../artifacts/contracts/contracts-nonupgradable/meetcap/MeetcapTimeLock.sol/MeetcapTimeLock.json';
+import { EthUtils, daysToSeconds } from '../../utils/EthUtils';
+import { Meetcap } from '../../typechain-types/Meetcap';
+import { MeetcapTimeLock } from '../../typechain-types/MeetcapTimeLock'
+import MeetcapTimeLockArtifact from '../../artifacts/contracts/contracts-nonupgradable/meetcap/MeetcapTimeLock.sol/MeetcapTimeLock.json';
 
 const { deployContract } = waffle;
 const { BigNumber } = ethers;
@@ -22,6 +22,7 @@ describe('MeetcapTimeLock', function () {
   const zeroAddress = ethers.constants.AddressZero;
 
   beforeEach(async function () {
+    // deploy Meetcap
     [deployer, beneficiary, owner] = await ethers.getSigners();
     const Meetcap = await hre.ethers.getContractFactory('Meetcap');
     meetcap = (await upgrades.deployProxy(Meetcap, [], { initializer: "initialize" })) as Meetcap;

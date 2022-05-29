@@ -43,18 +43,11 @@ module.exports = {
     },
   },
   gasReporter: {
-    enabled: (process.env.REPORT_GAS) ? true : false
+    enabled: true
   },
   etherscan: {
     apiKey:
-      process.env.POLYGONSCAN_API_KEY
-    // process.env.BSC_API_KEY
-  },
-  paths: {
-    sources: "./contracts",
-    tests: "./test",
-    cache: "./cache",
-    artifacts: "./artifacts"
+      process.env.TEST_POLYGONSCAN_API_KEY
   },
   networks: {
     localhost: {
@@ -67,48 +60,14 @@ module.exports = {
       }
     },
     matic_testnet: {
-      url: 'https://rpc-mumbai.maticvigil.com/',
+      url: process.env.TEST_ALCHEMY_URL,
       chainId: 80001,
-      accounts: [process.env.DEPLOYER_PRIVATE_KEY],
-      gas: 2100000,
-      gasPrice: 8000000000
-      // live: true,
+      accounts: [process.env.TEST_DEPLOYER_PRIVATE_KEY],
     },
     matic_mainnet: {
       url: 'https://polygon-rpc.com/',
       chainId: 137,
-      accounts: [process.env.DEPLOYER_PRIVATE_KEY],
-      // live: true,
-    },
-    bsc_testnet: {
-      url: 'https://data-seed-prebsc-1-s1.binance.org:8545',
-      chainId: 97,
-      accounts: [process.env.DEPLOYER_PRIVATE_KEY],
-      // live: true,
-    },
-    bsc_devnet: {
-      url: 'https://data-seed-prebsc-1-s1.binance.org:8545',
-      accounts: [process.env.DEPLOYER_PRIVATE_KEY],
-      // live: true,
-      tags: ['devnet'],
-      chainId: 97,
-    },
-    bsc_mainnet: {
-      url: 'https://bsc-dataseed.binance.org/',
-      chainId: 56,
-      accounts: [process.env.DEPLOYER_PRIVATE_KEY],
-      // live: true,
-    },
-    goerli: {
-      url: 'https://rpc.slock.it/goerli',
-      accounts: [process.env.DEPLOYER_PRIVATE_KEY],
-      chainId: 5,
-    },
-    rinkeby: {
-      url: 'https://rinkeby.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161',
-      accounts: [process.env.DEPLOYER_PRIVATE_KEY],
-      chainId: 4,
+      accounts: [process.env.TEST_DEPLOYER_PRIVATE_KEY],
     },
   },
-
 };

@@ -7,7 +7,6 @@ import "../utils/Context.sol";
 import "../security/ReentrancyGuard.sol";
 import "../access/Ownable.sol";
 
-
 contract MeetcapPresale is Context, ReentrancyGuard, Ownable {
     // How many token units a buyer gets per wei.
     // The rate is the conversion between wei and the smallest and indivisible token unit.
@@ -28,11 +27,8 @@ contract MeetcapPresale is Context, ReentrancyGuard, Ownable {
 
     constructor(uint256 rate_, IERC20Upgradeable token_) {
         require(rate_ > 0, "The token rate cannot be 0");
-        
-        require(
-            address(token_) != address(0), 
-            "Token address cannot be the zero address"
-        );
+
+        require(address(token_) != address(0), "Token address cannot be the zero address");
 
         _rate = rate_;
         _token = token_;
@@ -52,15 +48,9 @@ contract MeetcapPresale is Context, ReentrancyGuard, Ownable {
 
     function token() public view virtual returns (IERC20Upgradeable) {
         return _token;
-    } 
-    
-    function buyTokens(address beneficiary) 
-        public 
-        virtual 
-        payable 
-        nonReentrant 
-        returns (bool)
-    {
+    }
+
+    function buyTokens(address beneficiary) public payable virtual nonReentrant returns (bool) {
         uint256 weiSent = msg.value;
         uint256 tokensBought = weiSent * _rate;
 
@@ -75,12 +65,7 @@ contract MeetcapPresale is Context, ReentrancyGuard, Ownable {
         return true;
     }
 
-    function forwardFunds(uint256 weiAmount) 
-        public 
-        virtual 
-        onlyOwner 
-        returns (bool)
-    {
+    function forwardFunds(uint256 weiAmount) public virtual onlyOwner returns (bool) {
         require(address(this).balance >= weiAmount, "Insufficient balance");
 
         _transferEth(payable(owner()), weiAmount);
@@ -88,11 +73,7 @@ contract MeetcapPresale is Context, ReentrancyGuard, Ownable {
         return true;
     }
 
-    function endPresale() 
-        public 
-        virtual 
-        onlyOwner
-        returns (bool) {
+    function endPresale() public virtual onlyOwner returns (bool) {
         uint256 tokenBalance = _token.balanceOf(address(this));
         uint256 weiBalance = address(this).balance;
 
@@ -103,25 +84,16 @@ contract MeetcapPresale is Context, ReentrancyGuard, Ownable {
     }
 
     function _preValidatePurchase(
-        address beneficiary, 
-        uint256 weiSent, 
+        address beneficiary,
+        uint256 weiSent,
         uint256 tokensBought
     ) private view {
-        require(
-            beneficiary != address(0), 
-            "Beneficiary address cannot be the zero address."
-        );
+        require(beneficiary != address(0), "Beneficiary address cannot be the zero address.");
         require(weiSent != 0, "You cannot buy with 0 BNB.");
-        require(
-            _token.balanceOf(address(this)) >= tokensBought,
-            "Token amount exceeds the presale balance."
-        );
+        require(_token.balanceOf(address(this)) >= tokensBought, "Token amount exceeds the presale balance.");
     }
 
-    function _transferEth(
-        address payable beneficiary,
-        uint256 weiAmount
-        ) private nonReentrant {
+    function _transferEth(address payable beneficiary, uint256 weiAmount) private nonReentrant {
         (bool success, bytes memory data) = beneficiary.call{value: weiAmount}("");
 
         require(success, "Failed to send Ether");

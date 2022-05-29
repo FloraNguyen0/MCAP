@@ -7,7 +7,6 @@
         "target": "es2021",
         "types": ["node"],
         "module": "commonjs",
-        // "module": "es2022",
         "strict": true,
         "esModuleInterop": true,
         "outDir": "dist",

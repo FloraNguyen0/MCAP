@@ -23,7 +23,7 @@ contract Meetcap is Initializable,
         __Ownable_init();
         __UUPSUpgradeable_init();
 
-        _mint(msg.sender, 10000000000 * 10 ** decimals());
+        _mint(msg.sender, 10_000_000_000 * 10 ** decimals());
     }
 
     function _authorizeUpgrade(address newImplementation)

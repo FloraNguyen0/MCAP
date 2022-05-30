@@ -1,6 +1,7 @@
 ```shell
-npx hardhat test
 npx hardhat compile
+npx hardhat test
+npx hardhat coverage [command-options]
 # Starts a new Ethereum RPC server locally on port 8545 (local Ethereum network)
 npx hardhat node
 # Runs a user-defined script after compiling the project

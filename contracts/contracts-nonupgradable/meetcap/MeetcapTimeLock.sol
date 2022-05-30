@@ -5,7 +5,6 @@ import "../access/Ownable.sol";
 import "../utils/SafeMathMC.sol";
 import "../../contracts-upgradable/token/ERC20/IERC20Upgradeable.sol";
 
-
 contract MeetcapTimeLock is Ownable {
     using SafeMathX for uint256;
 
@@ -36,10 +35,7 @@ contract MeetcapTimeLock is Ownable {
     // Start date of the lockup period
     uint64 private immutable _startTime;
 
-    event Released(
-        uint256 releasableAmount,
-        uint32 toIdx
-    );
+    event Released(uint256 releasableAmount, uint32 toIdx);
 
     constructor(
         address beneficiary_,
@@ -59,10 +55,7 @@ contract MeetcapTimeLock is Ownable {
             _sum += releasePercents_[i];
         }
 
-        require(
-            _sum == 100, 
-            "Total unlock percent is not equal to 100"
-        );
+        require(_sum == 100, "Total unlock percent is not equal to 100");
 
         require(
             beneficiary_ != address(0),
@@ -70,12 +63,12 @@ contract MeetcapTimeLock is Ownable {
         );
 
         require(
-            address(token_) != address(0), 
+            address(token_) != address(0),
             "Token address cannot be the zero address"
         );
 
         require(
-            totalAllocation_ > 0, 
+            totalAllocation_ > 0,
             "The total allocation must be greater than zero"
         );
 
@@ -126,16 +119,14 @@ contract MeetcapTimeLock is Ownable {
         return _startTime;
     }
 
-    /// @notice Release unlocked tokens to user.
-    /// @dev User (sender) can release unlocked tokens by calling this function.
-    /// This function will release locked tokens from multiple lock phases that meets unlock requirements
-       function release() public virtual returns (bool) {
+    // This function will release locked tokens from multiple lock phases that meets unlock requirements
+    function release() public virtual returns (bool) {
         uint256 phases = _lockDurations.length;
         _preValidateRelease(phases);
 
         uint256 preReleaseId = _releaseId;
         uint256 releasableAmount = _releasableAmount(phases);
-        
+
         _releasedAmount += releasableAmount;
         _token.transfer(_beneficiary, releasableAmount);
 
@@ -145,18 +136,17 @@ contract MeetcapTimeLock is Ownable {
             _releaseDates[i] = releaseDate;
         }
 
-        emit Released(
-            releasableAmount,
-            _releaseId
-        );
+        emit Released(releasableAmount, _releaseId);
 
         return true;
     }
 
-    /// @dev This is for safety.
-    /// For example, when someone setup the contract with wrong data and accidentally transfer token to the lockup contract.
-    /// The owner can get the token back by calling this function.
-    /// The ownership is renounced right after the setup is done safely.
+    /*
+    This is for safety.
+    For example, when someone setup the contract with wrong data and accidentally transfer token to the lockup contract.
+    The owner can get the token back by calling this function.
+    The ownership is renounced right after the setup is done safely.
+    */
     function safeSetup() public virtual onlyOwner returns (bool) {
         uint256 balance = _token.balanceOf(address(this));
         _token.transfer(owner(), balance);
@@ -165,10 +155,7 @@ contract MeetcapTimeLock is Ownable {
     }
 
     function _preValidateRelease(uint256 phases) internal view virtual {
-        require(
-            _releaseId < phases,
-            "All phases have already been released"
-        );
+        require(_releaseId < phases, "All phases have already been released");
         require(
             block.timestamp >=
                 _startTime + _lockDurations[_releaseId] * 1 seconds,
@@ -176,10 +163,15 @@ contract MeetcapTimeLock is Ownable {
         );
     }
 
-    function _releasableAmount(uint256 phases) internal virtual returns (uint256) {
-        uint256 releasableAmount;      
+    function _releasableAmount(uint256 phases)
+        internal
+        virtual
+        returns (uint256)
+    {
+        uint256 releasableAmount;
         while (
-            _releaseId < phases && block.timestamp >=
+            _releaseId < phases &&
+            block.timestamp >=
             _startTime + _lockDurations[_releaseId] * 1 seconds
         ) {
             uint256 stepReleaseAmount;
@@ -190,11 +182,9 @@ contract MeetcapTimeLock is Ownable {
                     _releasePercents[_releaseId]
                 );
                 releasableAmount += stepReleaseAmount;
-
             }
             _releaseId++;
         }
         return releasableAmount;
     }
-
 }
